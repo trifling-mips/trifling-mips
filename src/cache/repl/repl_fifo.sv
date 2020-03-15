@@ -87,7 +87,7 @@ end
 
 // update state
 always_ff @ (posedge clk) begin
-	if (!rst_n) begin
+	if (~rst_n) begin
 		state <= '0;
 	end
 	else if (update) begin

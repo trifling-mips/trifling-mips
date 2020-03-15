@@ -1,5 +1,6 @@
 // Pseudo-LRU generator
 // Only supports SET_ASSOC = 2 or 4
+`include "repl_defs.svh"
 
 module plru #(
 	parameter int unsigned	SET_ASSOC	=	4
@@ -70,7 +71,7 @@ endgenerate
 
 // update state
 always_ff @ (posedge clk) begin
-	if (!rst_n) begin
+	if (~rst_n) begin
 		state <= '0;
 	end else if (update) begin
 		state <= state_n;
