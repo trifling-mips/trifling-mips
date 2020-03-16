@@ -6,7 +6,7 @@ module repl_fifo #(
 	parameter int unsigned SET_ASSOC = 4
 ) (
 	input								clk			,
-	input								rst_n		,
+	input								rst			,
 
 	input	[SET_ASSOC - 1:0]			access		,
 	input								update		,
@@ -87,7 +87,7 @@ end
 
 // update state
 always_ff @ (posedge clk) begin
-	if (~rst_n) begin
+	if (rst) begin
 		state <= '0;
 	end
 	else if (update) begin

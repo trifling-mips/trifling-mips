@@ -6,7 +6,7 @@ module repl_rand #(
 	parameter int unsigned	SET_ASSOC	=	4
 ) (
 	input								clk			,
-	input								rst_n		,
+	input								rst			,
 
 	input	[SET_ASSOC - 1:0]			access		,		// useless
 	input								update		,		// useless
@@ -21,7 +21,7 @@ assign repl_index = state;
 
 // update state
 always_ff @ (posedge clk) begin
-	if (~rst_n) begin
+	if (rst) begin
 		state <= '0;
 	end else begin
 		state <= state + 1'b1;

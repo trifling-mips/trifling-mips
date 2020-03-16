@@ -3,11 +3,12 @@
 `include "repl_defs.svh"
 
 module plru #(
-	parameter int unsigned	SET_ASSOC	=	4
-	`define					PLRU_STATE_WIDTH (SET_ASSOC - 1)
+	parameter int unsigned	SET_ASSOC	=	4,
+	// local parameter
+	localparam	PLRU_STATE_WIDTH = (SET_ASSOC - 1)
 ) (
 	input								clk			,
-	input								rst_n		,
+	input								rst			,
 
 	input	[SET_ASSOC - 1:0]			access		,
 	input								update		,
@@ -15,7 +16,7 @@ module plru #(
 	output	[$clog2(SET_ASSOC) - 1:0]	repl_index	
 );
 
-logic [(`PLRU_STATE_WIDTH - 1):0] state, state_n;
+logic [(PLRU_STATE_WIDTH - 1):0] state, state_n;
 
 // assign output index
 generate
@@ -71,7 +72,7 @@ endgenerate
 
 // update state
 always_ff @ (posedge clk) begin
-	if (~rst_n) begin
+	if (rst) begin
 		state <= '0;
 	end else if (update) begin
 		state <= state_n;
