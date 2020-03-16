@@ -21,12 +21,8 @@ typedef uint32_t		phys_t;
 
 `ifdef AXI3_IF_EN
 // interface for AXI3 read
-interface #(
-	parameter	BUS_WIDTH	=	4
-) axi3_rd_if (
-);
+typedef struct packed {
 	// ar
-	logic	[BUS_WIDTH - 1:0]	arid;
 	uint32_t					araddr;
 	logic	[3 :0]				arlen;
 	logic	[2 :0]				arsize;
@@ -35,42 +31,45 @@ interface #(
 	logic	[3 :0]				arcache;
 	logic	[2 :0]				arprot;
 	logic						arvalid;
+	// r
+	logic						rready;
+} axi3_rd_req_t;
+typedef struct packed {
+	// ar
 	logic						arready;
 	// r
-	logic	[BUS_WIDTH - 1:0]	rid;
-	logic						rready;
 	uint32_t					rdata;
 	logic	[1 :0]				rresp;
 	logic						rlast;
 	logic						rvalid;
+} axi3_rd_resp_t;
+interface axi3_rd_if #(
+	parameter	BUS_WIDTH	=	4
+) (
+);
+	// ar
+	logic	[BUS_WIDTH - 1:0]	arid;
+	// r
+	logic	[BUS_WIDTH - 1:0]	rid;
+
+	axi3_rd_req_t axi3_rd_req;
+	axi3_rd_resp_t axi3_rd_resp;
 
 	modport master (
-		// ar
-		output arid, araddr, arlen, arsize, arburst, arlock, arcache, arprot, arvalid;
-		input arready;
-		// r
-		output rready;
-		input rid, rdata, rresp, rlast, rvalid;
+		output axi3_rd_req, arid,
+		input axi3_rd_resp, rid
 	);
 
 	modport slave (
-		// ar
-		input arid, araddr, arlen, arsize, arburst, arlock, arcache, arprot, arvalid;
-		output arready;
-		// r
-		input rready;
-		output rid, rdata, rresp, rlast, rvalid;
+		input axi3_rd_req, arid,
+		output axi3_rd_resp, rid
 	);
 
 endinterface
 
 // interface for AXI3 write
-interface #(
-	parameter	BUS_WIDTH	=	4
-) axi3_wr_if (
-);
+typedef struct packed {
 	// aw
-	logic	[BUS_WIDTH - 1:0]	awid;
 	uint32_t					awaddr;
 	logic	[3 :0]				awlen;
 	logic	[2 :0]				awsize;
@@ -79,42 +78,45 @@ interface #(
 	logic	[3 :0]				awcache;
 	logic	[2 :0]				awprot;
 	logic						awvalid;
-	logic						awready;
 	// w
-	logic	[BUS_WIDTH - 1:0]	wid;
 	uint32_t					wdata;
 	logic	[3 :0]				wstrb;
 	logic						wlast;
 	logic						wvalid;
+	// b
+	logic						bready;
+} axi3_wr_req_t;
+typedef struct packed {
+	// aw
+	logic						awready;
+	// w
 	logic						wready;
 	// b
-	logic	[BUS_WIDTH - 1:0]	bid;
-	logic						bready;
 	logic	[1 :0]				bresp;
 	logic						bvalid;
+} axi3_wr_resp_t;
+interface axi3_wr_if #(
+	parameter	BUS_WIDTH	=	4
+) (
+);
+	// aw
+	logic	[BUS_WIDTH - 1:0]	awid;
+	// w
+	logic	[BUS_WIDTH - 1:0]	wid;
+	// b
+	logic	[BUS_WIDTH - 1:0]	bid;
+
+	axi3_wr_req_t axi3_wr_req;
+	axi3_wr_resp_t axi3_wr_resp;
 
 	modport master (
-		// aw
-		output awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awvalid;
-		input awready;
-		// w
-		output wid, wdata, wstrb, wlast, wvalid;
-		input wready;
-		// b
-		output bready;
-		input bid, bresp, bvalid;
+		output axi3_wr_req, awid, wid,
+		input axi3_wr_resp, bid
 	);
 
 	modport slave (
-		// aw
-		input awid, awaddr, awlen, awsize, awburst, awlock, awcache, awprot, awvalid;
-		output awready;
-		// w
-		input wid, wdata, wstrb, wlast, wvalid;
-		output wready;
-		// b
-		input bready;
-		output bid, bresp, bvalid;
+		input axi3_wr_req, awid, wid,
+		output axi3_wr_resp, bid
 	);
 
 endinterface
