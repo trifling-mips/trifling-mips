@@ -5,7 +5,7 @@ module stream_buffer #(
 	parameter	LINE_WIDTH	=	256,
 	parameter	ARID		=	2,		// arid(0, 1) is opcupied by icache & dcache
 	// local parameter
-	localparam	LINE_BYTE_OFFSET	=	$clog2(LINE_WIDTH / 8),
+	localparam	LINE_BYTE_OFFSET	=	$clog2(LINE_WIDTH / $bits(uint8_t)),
 	localparam	LABEL_WIDTH			=	($bits(phys_t) - LINE_BYTE_OFFSET)
 ) (
 	// external logics

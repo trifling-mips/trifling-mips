@@ -8,6 +8,7 @@
 // cache defs
 `include "cache_defs.svh"
 
+// data structrue
 typedef enum logic [1:0] {
 	IDLE,
 	WAIT_AXI_READY,
