@@ -28,7 +28,7 @@ always_ff @ (posedge clk) begin
 end
 
 // interface define
-phys_t addr;
+logic [LABEL_WIDTH - 1:0] addr;
 logic addr_rdy;
 logic [LABEL_WIDTH - 1:0] label;	// label(tag + index)
 logic [LINE_WIDTH - 1:0]  data;
@@ -151,6 +151,7 @@ initial begin
 	summary = "";
 	unittest("sequential");
 	$display("summary: %0s", summary);
+	$stop;
 end
 
 endmodule

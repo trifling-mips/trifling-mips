@@ -14,14 +14,14 @@
 `define PATH_PREFIX "testbench/cache/utils/stream_buffer/testcases/"
 `DEF_FUNC_GET_PATH
 
-`define DEF_FUNC_GET_REQ function phys_t get_req( \
+`define DEF_FUNC_GET_REQ function logic [LABEL_WIDTH - 1:0] get_req( \
 	input integer freq \
 ); \
-	phys_t req; \
+	logic [LABEL_WIDTH - 1:0] req; \
  \
 	if (!$feof(freq)) begin \
 		$fscanf(freq, "%x\n", req); \
-		return req[LABEL_WIDTH - 1:0]; \
+		return req; \
 	end else begin \
 		$display("[Error] get_req failed!"); \
 		$stop; \
