@@ -9,6 +9,9 @@
 `default_nettype wire
 `timescale 1ns / 1ps
 
+// compile_options
+`include "compile_options.svh"
+
 // data formats
 typedef logic [7:0]		uint8_t;
 typedef logic [15:0]	uint16_t;
