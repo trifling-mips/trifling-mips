@@ -10,10 +10,10 @@
 
 // data structrue
 typedef enum logic [1:0] {
-	IDLE,
-	WAIT_AXI_READY,
-	RECEIVING,
-	FINISH
-} state_t;
+	SB_IDLE,
+	SB_WAIT_AXI_READY,
+	SB_RECEIVING,
+	SB_FINISH
+} sb_state_t;
 
 `endif

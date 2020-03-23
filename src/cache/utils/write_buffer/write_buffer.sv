@@ -45,7 +45,7 @@ module write_buffer #(
 );
 
 // state_t
-state_t state, state_n;
+wb_state_t state, state_n;
 // common logic
 logic empty;
 line_t wb_line, wb_line_n;
@@ -82,7 +82,7 @@ always_comb begin
 	wb_addr_n = wb_addr;
 	wb_line_n = wb_line;
 	case(state)
-		IDLE: begin
+		WB_IDLE: begin
 			pop = 1'b1;
 			wb_addr_n = {rline[LINE_WIDTH +: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
 			wb_line_n = rline[LINE_WIDTH - 1:0];
@@ -94,7 +94,7 @@ end
 assign query_found = 1'b0;
 assign query_rdata = wb_line[LINE_WIDTH - 1:0];
 assign written     = 1'b0;				// cannot write at all
-assign full        = (state != IDLE);	// handling burst_wr req
+assign full        = (state != WB_IDLE);	// handling burst_wr req
 assign pushed      = push & ~full;		// empty, immediately receive data
 assign empty       = ~pushed;			// not handling burst_wr req
 
@@ -103,7 +103,7 @@ always_comb begin
 	wb_addr_n = wb_addr;
 	wb_line_n = wb_line;
 	case(state)
-		IDLE: begin
+		WB_IDLE: begin
 			wb_addr_n = {pline[LINE_WIDTH +: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
 			wb_line_n = pline[LINE_WIDTH - 1:0];
 		end
@@ -138,24 +138,24 @@ always_comb begin
 	axi3_wr_if.axi3_wr_req.wstrb = 4'b1111;
 
 	case(state)
-		IDLE: begin
+		WB_IDLE: begin
 			if(~empty) begin
 				wb_vld_n = 1'b1;
-				state_n  = WAIT_AWREADY;
+				state_n  = WB_WAIT_AWREADY;
 			end
 		end
 
-		WAIT_AWREADY: begin
+		WB_WAIT_AWREADY: begin
 			axi3_wr_if.axi3_wr_req.awvalid = 1'b1;
 
 			wb_burst_cnt_n = '0;
 
 			if(axi3_wr_if.axi3_wr_resp.awready) begin
-				state_n = WRITE;
+				state_n = WB_WRITE;
 			end
 		end
 
-		WRITE: begin
+		WB_WRITE: begin
 			axi3_wr_if.axi3_wr_req.wvalid = 1'b1;
 
 			if(axi3_wr_if.axi3_wr_resp.wready) begin
@@ -163,13 +163,13 @@ always_comb begin
 			end
 
 			if(axi3_wr_if.axi3_wr_resp.wready && axi3_wr_if.axi3_wr_req.wlast) begin
-				state_n = WAIT_BVALID;
+				state_n = WB_WAIT_BVALID;
 			end
 		end
 
-		WAIT_BVALID: begin
+		WB_WAIT_BVALID: begin
 			if(axi3_wr_if.axi3_wr_resp.bvalid)
-				state_n = IDLE;
+				state_n = WB_IDLE;
 		end
 	endcase
 end
@@ -177,7 +177,7 @@ end
 // update common logic
 always_ff @ (posedge clk) begin
 	if (rst) begin
-		state   <= IDLE;
+		state   <= WB_IDLE;
 		wb_addr <= '0;
 		wb_line <= '0;
 		wb_vld  <= '0;

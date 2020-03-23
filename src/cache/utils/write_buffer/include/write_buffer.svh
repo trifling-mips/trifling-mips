@@ -14,10 +14,10 @@
 
 // data structrue
 typedef enum logic [2:0] {
-	IDLE,
-	WAIT_AWREADY,
-	WRITE,
-	WAIT_BVALID
-} state_t;
+	WB_IDLE,
+	WB_WAIT_AWREADY,
+	WB_WRITE,
+	WB_WAIT_BVALID
+} wb_state_t;
 
 `endif
