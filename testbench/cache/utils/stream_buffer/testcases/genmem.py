@@ -36,7 +36,8 @@ def gen_random_req():
 		fm = "%0" + str(math.ceil(LABEL_WIDTH / 4)) + "x\n"
 		f.write(fm % label)
 	# get corresponding data
-	data = getdata(((label + 1) << int(math.log2(DATA_PER_LINE))), mem_file = mem_file)
+	# data = getdata(((label + 1) << int(math.log2(DATA_PER_LINE))), mem_file = mem_file)
+	data = getdata((label << int(math.log2(DATA_PER_LINE))), mem_file = mem_file)
 	with open(ans_file, "a") as f:
 		f.write(data + "\n")
 
