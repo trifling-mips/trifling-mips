@@ -100,7 +100,7 @@ module dual_port_lutram #(
 	input	logic	[$clog2(SIZE)-1:0] addrb,
 	input	dtype	dina,
 	output	dtype	douta,
-	output	type	doutb
+	output	dtype	doutb
 );
 
 // xpm_memory_dpdistram: Dual Port Distributed RAM
