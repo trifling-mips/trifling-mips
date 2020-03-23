@@ -20,7 +20,33 @@ typedef logic [63:0]	uint64_t;
 typedef uint32_t		virt_t;
 typedef uint32_t		phys_t;
 
-`define AXI3_IF_EN
+// interface of I$ and CPU
+// I$ is 2-stage pipelined
+interface cpu_ibus_if();
+	// control signals
+	logic ready;
+	// indicate that corresponding stage shall be directly terminated.
+	// flush_1 will be '1' whenever flush_2 is '1'.
+	// stall shall be '0' whenever flush_2 is '1'.
+	logic stall;		// stall signal from icache
+	logic flush_1, flush_2, flush_3;
+	// read signals
+	logic read;			// whether start read req
+	logic rddata_vld;	// whether rddata is valid
+	phys_t addr;		// read addr
+	uint32_t rddata;	// read data
+
+	modport master (
+		input ready, stall, rddata_vld, rddata,
+		output flush_1, flush_2, flush_3, read, addr
+	);
+
+	modport slave (
+		output ready, stall, rddata_vld, rddata,
+		input flush_1, flush_2, flush_3, read, addr
+	);
+
+endinterface
 
 `ifdef AXI3_IF_EN
 // interface for AXI3 read
