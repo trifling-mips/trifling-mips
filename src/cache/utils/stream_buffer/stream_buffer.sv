@@ -85,9 +85,10 @@ end
 
 // update next
 always_ff @ (posedge clk) begin
-	if (rst)
+	if (rst) begin
 		data_vld_r <= 1'b0;
-	else if (state_n == SB_FINISH)
+		label_r    <= '0;
+	end else if (state_n == SB_FINISH)
 		data_vld_r <= 1'b1;
 	else if (state_n == SB_WAIT_AXI_READY) begin
 		data_vld_r <= 1'b0;
