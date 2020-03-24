@@ -3,8 +3,9 @@ SRCS = genreq.py
 info:
 	@echo "Please use ./build.sh, do not make directly"
 
-mem: $(SRCS)
+req: $(SRCS)
 	python $(SRCS)
 
 clean:
-	rm -rf *.mem || true
+	rm -rf *.req || true
+	rm -rf *.ans || true
