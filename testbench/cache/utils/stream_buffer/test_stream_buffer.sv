@@ -28,9 +28,9 @@ always_ff @ (posedge clk) begin
 end
 
 // interface define
-logic [LABEL_WIDTH - 1:0] addr;
-logic addr_rdy;
-logic [LABEL_WIDTH - 1:0] label;	// label(tag + index)
+logic [LABEL_WIDTH - 1:0] label_i;
+logic label_i_rdy;
+logic [LABEL_WIDTH - 1:0] label_o;	// label(tag + index)
 logic [LINE_WIDTH - 1:0]  data;
 logic data_vld;
 axi3_rd_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_rd_if();
@@ -118,21 +118,21 @@ task unittest_(
 			ans_counter = ans_counter + 1;
 			// issue next req
 			if (!$feof(freq)) begin
-				addr = get_req(freq);
-				addr_rdy = 1'b1;
+				label_i = get_req(freq);
+				label_i_rdy = 1'b1;
 				req_counter = req_counter + 1;
 			end else begin
-				addr_rdy = 1'b1;
+				label_i_rdy = 1'b1;
 			end
 		end else if (req_counter == 0 && ans_counter == 0) begin
 			// issue first req
 			if (!$feof(freq)) begin
-				addr = get_req(freq);
-				addr_rdy = 1'b1;
+				label_i = get_req(freq);
+				label_i_rdy = 1'b1;
 				req_counter = req_counter + 1;
 			end
 		end else begin
-			addr_rdy = 1'b0;
+			label_i_rdy = 1'b0;
 		end
 	end
 
