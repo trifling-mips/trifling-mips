@@ -64,6 +64,7 @@ icache_state_t stage2_state, stage2_state_n;
 index_t stage2_inv_cnt, stage2_inv_cnt_n;
 // check cache miss
 phys_t stage2_addr_plus1;
+logic stage2_inv_rtag1, stage2_inv_rtag2;
 logic stage2_cache_miss, stage2_cache_miss_plus1;
 logic [SET_ASSOC-1:0] stage2_hit, stage2_hit_plus1;
 logic stage2_prefetch_hit, stage2_prefetch_hit_plus1;
@@ -101,8 +102,8 @@ always_ff @ (posedge clk) begin
 		pipe1_read <= 1'b0;
 		pipe1_inv  <= 1'b0;
 		pipe1_inv_index <= '0;
-	end else begin
-		// data before pipe1 has been stalled
+	end else if (~ibus.stall) begin
+		// data before pipe1 has been updated to next pipe
 		pipe1_addr <= ibus.addr;
 		pipe1_read <= ibus.read & ~ibus.flush_1;
 		pipe1_inv  <= inv_icache;
@@ -118,7 +119,7 @@ end
 stream_buffer #(
 	.LINE_WIDTH(LINE_WIDTH),
 	.ARID(ARID)
-) (
+) icache_prefetch (
 	.label_i(stage2_sb_label_i),
 	.label_i_rdy(stage2_sb_label_i_rdy),
 	.label_o(pipe1_sb_label_o),
@@ -131,20 +132,20 @@ for(genvar i = 0; i < SET_ASSOC; ++i) begin : gen_icache_hit
 	assign stage2_hit[i] = pipe1_tag_rdata1[i].valid & (get_tag(pipe1_addr) == pipe1_tag_rdata1[i].tag);
 end
 assign stage2_cache_miss = ~(|stage2_hit) & pipe1_read;
-assign stage2_prefetch_hit = (pipe1_sb_label_o == get_tag(pipe1_addr)) & pipe1_read;
+assign stage2_prefetch_hit = (pipe1_sb_label_o == get_label(pipe1_addr)) & pipe1_read;
 // next line
 assign stage2_addr_plus1 = pipe1_addr + (1'b1 << LINE_BYTE_OFFSET);
 for(genvar i = 0; i < SET_ASSOC; ++i) begin : gen_icache_hit_plus1
 	assign stage2_hit_plus1[i] = pipe1_tag_rdata2[i].valid & (get_tag(stage2_addr_plus1) == pipe1_tag_rdata2[i].tag);
 end
-assign stage2_cache_miss_plus1 = ~(|stage2_hit_plus1) & pipe1_read;
-assign stage2_prefetch_hit_plus1 = (pipe1_sb_label_o == get_tag(stage2_addr_plus1)) & pipe1_read;
+assign stage2_cache_miss_plus1 = ~(|stage2_hit_plus1) & pipe1_read & ~stage2_inv_rtag2;		// after tag write, inv rtag2
+assign stage2_prefetch_hit_plus1 = (pipe1_sb_label_o == get_label(stage2_addr_plus1)) & pipe1_read;
 // repl
 assign stage2_repl_index_waddr = pipe1_repl_index[get_index(pipe1_addr)];
 always_comb begin
 	stage2_assoc_waddr = stage2_repl_index_waddr;
 	for(int i = 0; i < SET_ASSOC; ++i) begin
-		if(~pipe1_tag_rdata[i].valid) stage2_assoc_waddr = i;	// ibus.stall still 1
+		if(~pipe1_tag_rdata1[i].valid) stage2_assoc_waddr = i;	// ibus.stall still 1
 	end
 end
 // state
@@ -157,24 +158,31 @@ always_comb begin
 				stage2_state_n = ICACHE_IDLE;
 			end else if (~stage2_prefetch_hit) begin
 				// none hit, start a new req
+				// BOOT_ADDR cannot be 00000000
 				stage2_state_n = ICACHE_WAIT_COMMIT;
-			end else if (pipe1_sb_line_vld) begin
-				// prefetch hit, move line_data
-				stage2_state_n = ICACHE_PREFETCH_LOAD;
-			end else begin
+			end else if (~pipe1_sb_line_vld) begin
 				// prefetch hit, on transfering
 				stage2_state_n = ICACHE_FETCH;
+			end else if (~stage2_inv_rtag1) begin
+				// prefetch hit, move line_data
+				stage2_state_n = ICACHE_PREFETCH_LOAD;
 			end
-		ICACHE_WAIT_COMMIT:
+		ICACHE_WAIT_COMMIT: begin
 			if (pipe1_sb_label_o == get_label(pipe1_addr)) begin
 				// req accept
 				stage2_state_n = ICACHE_FETCH;
 			end
-		ICACHE_FETCH:
+
+			if (ibus.flush_2) stage2_state_n = ICACHE_IDLE;
+		end
+		ICACHE_FETCH: begin
 			if (pipe1_sb_line_vld) begin
 				// fetch complete
 				stage2_state_n = ICACHE_IDLE;
 			end
+
+			if (ibus.flush_2) stage2_state_n = ICACHE_IDLE;
+		end
 		ICACHE_PREFETCH_LOAD: stage2_state_n = ICACHE_IDLE;
 		ICACHE_INVALIDATING:
 			if(&stage2_inv_cnt) stage2_state_n = ICACHE_IDLE;
@@ -209,10 +217,10 @@ end
 assign stage2_tag_wdata.valid = stage2_state != ICACHE_INVALIDATING && ~pipe1_inv;
 assign stage2_tag_wdata.tag   = get_tag(pipe1_addr);
 assign stage2_data_wdata      = pipe1_sb_line;
-assign stage2_data_raddr      = pipe1_addr;
+assign stage2_data_raddr      = get_index(pipe1_addr);
 always_comb begin
 	stage2_tag_we    = '0;
-	stage2_ram_waddr = get_index(ibus.addr);
+	stage2_ram_waddr = get_index(ibus.addr) + 1;		// fetch line_plus1
 	stage2_data_we   = '0;
 
 	stage2_inv_cnt_n   = '0;
@@ -222,6 +230,7 @@ always_comb begin
 				// fetch complete
 				stage2_tag_we[stage2_assoc_waddr] = 1'b1;
 				stage2_data_we[stage2_assoc_waddr] = 1'b1;
+				stage2_ram_waddr = get_index(pipe1_addr);
 			end
 		ICACHE_PREFETCH_LOAD: begin
 			stage2_tag_we[stage2_assoc_waddr] = 1'b1;
@@ -243,21 +252,26 @@ end
 // invalidate counter, only use after rst & state
 always_ff @ (posedge clk) begin
 	if (rst) begin
-		stage2_state   <= ICACHE_INVALIDATING;
-		stage2_inv_cnt <= '0;
+		stage2_state     <= ICACHE_INVALIDATING;
+		stage2_inv_cnt   <= '0;
+		stage2_inv_rtag1 <= '0;
+		stage2_inv_rtag2 <= '0;
 	end else begin
-		stage2_state   <= stage2_state_n;
-		stage2_inv_cnt <= stage2_inv_cnt_n;
+		stage2_state     <= stage2_state_n;
+		stage2_inv_cnt   <= stage2_inv_cnt_n;
+		stage2_inv_rtag1 <= |stage2_tag_we;		// if we write tag ram, inv next rtag1
+		stage2_inv_rtag2 <= |stage2_tag_we;		// if we write tag ram, inv next rtag2
 	end
 end
 // pipe 2(data access)
 always_ff @ (posedge clk) begin
 	if (rst) begin
 		pipe2_data_rdata_vld <= '0;
-	end else if (~ibus.stall) begin
+	end else begin
+		// pipe has been stall at pipe1
 		pipe2_addr           <= pipe1_addr;
-		pipe2_hit            <= stage2_hit;
-		pipe2_data_rdata_vld <= pipe1_read & ~ibus.flush_2;
+		pipe2_hit            <= stage2_hit;		// after fetch, should not hit
+		pipe2_data_rdata_vld <= pipe1_read & ~ibus.flush_2 & ~ibus.stall;		// stall pipe 1 -> 2
 	end
 end
 // stage 3(pipe 2 - 3)
@@ -266,13 +280,16 @@ always_comb begin
 	for(int i = 0; i < SET_ASSOC; ++i) begin
 		stage3_data_rdata |= {DATA_WIDTH{pipe2_hit[i]}} & pipe2_data_rdata[i][get_offset(pipe2_addr)];
 	end
+
+	if (~|pipe2_hit) stage3_data_rdata = stage2_data_wdata[get_offset(pipe2_addr)];		// sb_line hold 2 period
 end
 // pipe 3(result drive)
 always_ff @ (posedge clk) begin
 	if (rst) begin
 		pipe3_data_rdata_vld <= 1'b0;
-	end else if (~ibus.stall) begin
-		pipe3_data_rdata_vld <= pipe2_data_rdata_vld & ~ibus.flush_3;
+	end else begin
+		// pipe has been stall at pipe1
+		pipe3_data_rdata_vld <= pipe2_data_rdata_vld & ~ibus.flush_3;		// not stall pipe 2 -> 3
 		pipe3_data_rdata     <= stage3_data_rdata;
 	end
 end
