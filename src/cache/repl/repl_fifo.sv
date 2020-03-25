@@ -8,10 +8,10 @@ module repl_fifo #(
 	input								clk			,
 	input								rst			,
 
-	input	[SET_ASSOC - 1:0]			access		,
-	input								update		,
+	input	logic	[SET_ASSOC - 1:0]			access		,
+	input	logic								update		,
 
-	output	[$clog2(SET_ASSOC) - 1:0]	repl_index	
+	output	logic	[$clog2(SET_ASSOC) - 1:0]	repl_index	
 );
 
 genvar i;

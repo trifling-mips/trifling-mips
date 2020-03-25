@@ -8,10 +8,10 @@ module repl_rand #(
 	input								clk			,
 	input								rst			,
 
-	input	[SET_ASSOC - 1:0]			access		,		// useless
-	input								update		,		// useless
+	input	logic	[SET_ASSOC - 1:0]			access		,		// useless
+	input	logic								update		,		// useless
 
-	output	[$clog2(SET_ASSOC) - 1:0]	repl_index	
+	output	logic	[$clog2(SET_ASSOC) - 1:0]	repl_index	
 );
 
 logic [$clog2(SET_ASSOC) - 1:0] state;
