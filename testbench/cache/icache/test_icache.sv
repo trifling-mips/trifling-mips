@@ -16,9 +16,6 @@ module test_icache #(
 
 );
 
-// define funcs
-`DEF_FUNC_GET_REQ
-
 // gen clk & sync_rst
 logic clk, rst, sync_rst;
 sim_clock sim_clock_inst(.*);
