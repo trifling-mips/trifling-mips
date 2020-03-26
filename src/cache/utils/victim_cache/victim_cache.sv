@@ -61,7 +61,7 @@ end else begin
 	// hit
 	logic [LINE_DEPTH - 1:0] hit, hit_non_pop;
 	for(genvar i = 0; i < LINE_DEPTH; i++) begin
-		assign hit[i] = valid[i] && mem[i][LINE_WIDTH +: LABEL_WIDTH] == query_label;
+		assign hit[i] = valid[i] && mem[i][LINE_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH] == query_label;
 		assign hit_non_pop[i] = (pop && head == i[ADDR_WIDTH - 1:0]) ? 1'b0 : hit[i];
 	end
 	assign query_found = |hit;
@@ -71,7 +71,7 @@ end else begin
 		query_rdata = '0;
 
 		for(int i = 0; i < LINE_DEPTH; i++) begin
-			query_rdata |= hit[i] ? mem[i][0 +: LINE_WIDTH] : '0;
+			query_rdata |= hit[i] ? mem[i][LINE_WIDTH - 1:0] : '0;
 		end
 	end
 
@@ -132,7 +132,7 @@ end else begin
 		if(write && |hit_non_pop) begin
 			for(int i = 0; i < LINE_DEPTH; i++) if(hit_non_pop[i])
 				for(int j = 0; j < (LINE_WIDTH / $bits(uint8_t)); j++) if(query_wbe[j])
-					mem_n[i][j * $bits(uint8_t) +: $bits(uint8_t)] = query_wdata[j * $bits(uint8_t) +: $bits(uint8_t)];
+					mem_n[i][(j + 1) * $bits(uint8_t) - 1 -: $bits(uint8_t)] = query_wdata[(j + 1) * $bits(uint8_t) - 1 -: $bits(uint8_t)];
 
 			written = 1'b1;
 		end

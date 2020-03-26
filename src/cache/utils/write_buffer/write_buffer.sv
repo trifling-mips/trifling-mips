@@ -54,7 +54,7 @@ phys_t wb_addr, wb_addr_n;
 logic [BURST_LIMIT:0][31:0] wb_burst_line;
 logic [LINE_BYTE_OFFSET - 1:0] wb_burst_cnt, wb_burst_cnt_n;
 assign wb_burst_line = wb_line[LINE_WIDTH - 1:0];		// reshape
-assign query_found_wb = query_found ? 1'b0 : (wb_line[LINE_WIDTH +: LABEL_WIDTH] == query_label) && wb_vld;
+assign query_found_wb = query_found ? 1'b0 : (wb_line[LINE_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH] == query_label) && wb_vld;
 
 `ifdef VICTIM_CACHE_ENABLE
 // define interface
@@ -84,7 +84,7 @@ always_comb begin
 	case(state)
 		WB_IDLE: begin
 			pop = 1'b1;
-			wb_addr_n = {rline[LINE_WIDTH +: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
+			wb_addr_n = {rline[LINE_WIDTH + LABEL_WIDTH + 1 -: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
 			wb_line_n = rline[LINE_WIDTH - 1:0];
 		end
 	endcase
@@ -104,7 +104,7 @@ always_comb begin
 	wb_line_n = wb_line;
 	case(state)
 		WB_IDLE: begin
-			wb_addr_n = {pline[LINE_WIDTH +: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
+			wb_addr_n = {pline[LINE_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
 			wb_line_n = pline[LINE_WIDTH - 1:0];
 		end
 	endcase
