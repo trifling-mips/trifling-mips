@@ -33,7 +33,8 @@ module dcache_pass #(
 
 	// uncached resp, only for load
 	// line_t line_vld(0 - invld, 1 - vld) ---- label_t ---- data_t
-	output	line_t		rline
+	output	line_t		rline,
+	output	logic		rline_vld
 );
 
 generate if (DATA_DEPTH == 0) begin
@@ -52,6 +53,7 @@ end else begin
 	line_t [DATA_DEPTH - 1:0] mem, mem_n;
 	logic  [DATA_DEPTH - 1:0] valid, valid_n;
 	// axi3 transfer & rline_n for load
+	logic rline_vld_n;
 	line_t transfer_line, transfer_line_n, rline_n;
 
 	// Grow --->
@@ -166,12 +168,21 @@ end else begin
 
 	// set rline, only for load
 	always_comb begin
-		rline_n = '0;
+		rline_n     = '0;
+		rline_vld_n = 1'b0;
 		case (state)
 			// store complete
-			DP_WAIT_BVALID: if (axi3_wr_if.axi3_wr_resp.bvalid) rline_n = {1'b1, transfer_line[$bits(line_t) - 2:0]};
+			DP_WAIT_BVALID:
+				if (axi3_wr_if.axi3_wr_resp.bvalid) begin
+					rline_n = transfer_line;
+					rline_vld_n = 1'b1;
+				end
 			// load complete
-			DP_READ: if (axi3_rd_if.axi3_rd_resp.rvalid) rline_n = {1'b1, transfer_line[$bits(line_t) - 2 -: ($bits(be_t) + $bits(label_t))], axi3_rd_if.axi3_rd_resp.rdata};
+			DP_READ:
+				if (axi3_rd_if.axi3_rd_resp.rvalid) begin
+					rline_n = {transfer_line[$bits(line_t) - 1 : $bits(data_t)], axi3_rd_if.axi3_rd_resp.rdata};
+					rline_vld_n = 1'b1;
+				end
 		endcase
 	end
 
@@ -198,11 +209,13 @@ end else begin
 	// sync update state & rline
 	always_ff @ (posedge clk) begin
 		if (rst) begin
-			state <= DP_IDLE;
-			rline <= '0;
+			state     <= DP_IDLE;
+			rline     <= '0;
+			rline_vld <= '0;
 		end else begin
-			state <= state_n;
-			rline <= rline_n;
+			state     <= state_n;
+			rline     <= rline_n;
+			rline_vld <= rline_vld_n;
 		end
 	end
 end endgenerate
