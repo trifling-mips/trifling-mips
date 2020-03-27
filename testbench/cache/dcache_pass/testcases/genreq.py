@@ -68,11 +68,11 @@ def gen_random_req(n_req = N_REQ):
 				rdata = getdata(addr)
 				fm = "%01x-%01x-%0" + str(math.ceil(VALID_ADDR_WIDTH / 4)) + "x-%s\n"
 				with open(ans_file, "a") as f:
-					f.write(fm % (1, lst2num(wbe), addr, rdata))
+					f.write(fm % (ls_type, lst2num(wbe), addr, rdata))
 			else:
 				fm = "%01x-%01x-%0" + str(math.ceil(VALID_ADDR_WIDTH / 4)) + "x-%s\n"
 				with open(ans_file, "a") as f:
-					f.write(fm % (1, lst2num(wbe), addr, wdata))
+					f.write(fm % (ls_type, lst2num(wbe), addr, wdata))
 				wrdata(addr, wbe, wdata)
 				if random.randint(0, 1) == 1:
 					if index < n_req:
@@ -86,7 +86,7 @@ def gen_random_req(n_req = N_REQ):
 						rdata = getdata(addr)
 						fm = "%01x-%01x-%0" + str(math.ceil(VALID_ADDR_WIDTH / 4)) + "x-%s\n"
 						with open(ans_file, "a") as f:
-							f.write(fm % (1, lst2num(wbe), addr, rdata))
+							f.write(fm % (ls_type, lst2num(wbe), addr, rdata))
 						index += 1
 
 def sequential():

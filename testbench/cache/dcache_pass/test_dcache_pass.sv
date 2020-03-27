@@ -33,7 +33,7 @@ end
 
 // interface define
 line_t pline, rline;
-logic push, full;
+logic push, full, rline_vld;
 axi3_rd_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_rd_if();
 axi3_wr_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_wr_if();
 // inst module
@@ -130,7 +130,7 @@ task unittest_(
 		end
 
 		// check ans
-		if (rline[$bits(line_t) - 1]) begin
+		if (rline_vld) begin
 			$sformat(out, {"%x-%x-%x-%x"}, 
 				rline[$bits(line_t) - 1], 
 				rline[$bits(line_t) - 2 -: $bits(be_t)], 
