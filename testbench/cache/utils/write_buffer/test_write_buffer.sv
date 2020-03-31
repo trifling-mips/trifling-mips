@@ -37,7 +37,7 @@ axi3_rd_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_rd_if();
 line_t pline;
 logic full, push, pushed;
 label_t query_label;
-logic query_found, write, written;
+logic query_found, query_on_pop, write, written;
 data_t query_wdata, query_rdata;
 be_t query_wbe;
 logic query_found_wb;

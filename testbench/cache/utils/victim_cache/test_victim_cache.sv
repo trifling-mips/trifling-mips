@@ -28,7 +28,7 @@ end
 line_t rline, pline;
 logic full, empty, pop, push, pushed;
 label_t query_label;
-logic query_found, write, written;
+logic query_found, query_on_pop, write, written;
 data_t query_wdata, query_rdata;
 be_t query_wbe;
 // inst module
