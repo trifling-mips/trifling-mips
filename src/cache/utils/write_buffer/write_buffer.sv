@@ -32,6 +32,7 @@ module write_buffer #(
 	// query signals
 	input	label_t	query_label,
 	output	logic	query_found,
+	output	logic	query_on_pop,
 	input	data_t	query_wdata,
 	output	data_t	query_rdata,
 	input	be_t	query_wbe,

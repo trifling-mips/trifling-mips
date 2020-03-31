@@ -29,6 +29,7 @@ module victim_cache #(
 	// query signals
 	input	label_t	query_label,
 	output	logic	query_found,
+	output	logic	query_on_pop,
 	input	data_t	query_wdata,
 	output	data_t	query_rdata,
 	input	be_t	query_wbe,
@@ -65,6 +66,7 @@ end else begin
 		assign hit_non_pop[i] = (pop && head == i[ADDR_WIDTH - 1:0]) ? 1'b0 : hit[i];
 	end
 	assign query_found = |hit;
+	assign query_on_pop = pop & (rline[LINE_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH] == query_label);
 
 	// rdata
 	always_comb begin
