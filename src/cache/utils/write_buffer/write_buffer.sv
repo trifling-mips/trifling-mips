@@ -42,7 +42,8 @@ module write_buffer #(
 	// query_wb signals
 	// if query_label is found in wb_line, set as 1 for 1 period(before posedge clk) to re-write d$
 	// meanwhile, victim line of this re-write will be confirmed by pushed signal
-	output	logic	query_found_wb
+	output	logic	query_found_wb,
+	output	logic	clear
 );
 
 // state_t
@@ -56,6 +57,7 @@ logic [BURST_LIMIT:0][31:0] wb_burst_line;
 logic [LINE_BYTE_OFFSET - 1:0] wb_burst_cnt, wb_burst_cnt_n;
 assign wb_burst_line = wb_line[LINE_WIDTH - 1:0];		// reshape
 assign query_found_wb = query_found ? 1'b0 : (wb_line[LINE_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH] == query_label) && wb_vld;
+assign clear = empty & (state == WB_IDLE);
 
 `ifdef VICTIM_CACHE_ENABLE
 // define interface
