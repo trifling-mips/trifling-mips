@@ -21,7 +21,7 @@ typedef uint32_t		virt_t;
 typedef uint32_t		phys_t;
 
 // interface of I$ and CPU
-// I$ is 2-stage pipelined
+// I$ is 3-stage pipelined
 interface cpu_ibus_if();
 	// control signals
 	logic ready;
@@ -44,6 +44,43 @@ interface cpu_ibus_if();
 	modport slave (
 		output ready, stall, rddata_vld, rddata,
 		input flush_1, flush_2, flush_3, read, addr
+	);
+
+endinterface
+
+// interface for D$ and CPU
+// D$ is 3-stage pipelined
+typedef struct packed {
+	logic [$clog2(`N_RESV_LSU):0] lsu_idx;
+	phys_t addr;		// aligned in 4-bytes
+	// byteenable[i] corresponds to wrdata[(i + 1) * 8 - 1 : i * 8]
+	logic [$bits(uint32_t) / $bits(uint8_t) - 1:0] be;
+	uint32_t wrdata;
+	logic read, write, uncached;
+} lsu_req;
+typedef struct packed {
+	logic [$clog2(`N_RESV_LSU):0] lsu_idx;
+	uint32_t rddata;
+	logic rddata_vld;
+} lsu_resp;
+interface cpu_dbus_if();
+	// control signals
+	// for D$
+	logic stall, inv_dcache;
+	// for I$
+	logic inv_icache;
+	// lsu_req
+	lsu_req lsu_req;
+	lsu_resp lsu_resp, lsu_uncached_resp;
+
+	modport master (
+		output inv_dcache, inv_icache, lsu_req,
+		input stall, lsu_resp, lsu_uncached_resp
+	);
+
+	modport slave (
+		input inv_dcache, inv_icache, lsu_req,
+		output stall, lsu_resp, lsu_uncached_resp
 	);
 
 endinterface
