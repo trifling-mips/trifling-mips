@@ -9,11 +9,12 @@
 `include "cache_defs.svh"
 
 // data structrue
-typedef enum logic [1:0] {
+typedef enum logic [2:0] {
 	SB_IDLE,
 	SB_WAIT_AXI_READY,
 	SB_RECEIVING,
-	SB_FINISH
+	SB_FLUSH_WAIT_AXI_READY,
+	SB_FLUSH_RECEIVING
 } sb_state_t;
 
 `endif
