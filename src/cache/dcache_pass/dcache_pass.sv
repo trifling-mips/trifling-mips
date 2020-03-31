@@ -8,16 +8,9 @@ module dcache_pass #(
 	parameter	AWID			=	2,
 	parameter	DATA_DEPTH		=	8,
 	// local parameter
-	localparam int unsigned LABEL_WIDTH = $bits(phys_t) - $clog2(DATA_WIDTH / $bits(uint8_t)),
 	localparam int unsigned ADDR_WIDTH  = (DATA_DEPTH == 0) ? 0 : $clog2(DATA_DEPTH),
 	localparam bit          TYPE_STORE  = 1'b0,
-	localparam bit          TYPE_LOAD   = 1'b1,
-	// parameter for type
-	parameter type be_t    = logic [(DATA_WIDTH / $bits(uint8_t)) - 1:0],
-	parameter type label_t = logic [LABEL_WIDTH - 1:0],
-	parameter type data_t  = logic [DATA_WIDTH  - 1:0],
-	// line_t ls_type(0 - store, l - load) ---- wbe ---- label_t ---- data_t
-	parameter type line_t  = logic [$bits(be_t) + $bits(label_t) + $bits(data_t):0]
+	localparam bit          TYPE_LOAD   = 1'b1
 ) (
 	input	logic	clk,
 	input	logic	rst,
@@ -27,14 +20,12 @@ module dcache_pass #(
 	axi3_wr_if.master	axi3_wr_if,
 
 	// uncached req
-	input	line_t		pline,
+	input	lsu_req		lsu_uncached_req,
 	input	logic		push,
 	output	logic		full,
 
 	// uncached resp, only for load
-	// line_t line_vld(0 - invld, 1 - vld) ---- label_t ---- data_t
-	output	line_t		rline,
-	output	logic		rline_vld
+	output	lsu_resp	lsu_uncached_resp
 );
 
 generate if (DATA_DEPTH == 0) begin
@@ -50,11 +41,10 @@ end else begin
 	// pointer
 	addr_t head, head_n, tail, tail_n;
 	// mem & valid
-	line_t [DATA_DEPTH - 1:0] mem, mem_n;
+	lsu_req [DATA_DEPTH - 1:0] mem, mem_n;
 	logic  [DATA_DEPTH - 1:0] valid, valid_n;
-	// axi3 transfer & rline_n for load
-	logic rline_vld_n;
-	line_t transfer_line, transfer_line_n, rline_n;
+	// axi3 transfer for load
+	lsu_req transfer_line, transfer_line_n;
 
 	// Grow --->
 	// O O O X X X X O O
@@ -86,7 +76,7 @@ end else begin
 
 		// push one line
 		if(push && ~(full && ~pop)) begin
-			mem_n[tail] = pline;
+			mem_n[tail] = lsu_uncached_req;
 			valid_n[tail] = 1'b1;
 
 			if(tail == DATA_DEPTH[ADDR_WIDTH - 1:0] - 1) begin
@@ -114,7 +104,7 @@ end else begin
 	always_ff @ (posedge clk) begin
 		if(rst) begin
 			mem <= '0;
-		end else if(pushed) begin
+		end else if (pushed) begin
 			mem <= mem_n;
 		end
 	end
@@ -147,13 +137,13 @@ end else begin
 		axi3_rd_if.axi3_rd_req.arburst = 2'b01;
 		axi3_rd_if.axi3_rd_req.arlen   = 3'b0000;
 		axi3_rd_if.axi3_rd_req.arsize  = 2'b010;	// 4 bytes
-		axi3_rd_if.axi3_rd_req.araddr  = {transfer_line[DATA_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH], {($bits(phys_t) - LABEL_WIDTH){1'b0}}};
+		axi3_rd_if.axi3_rd_req.araddr  = transfer_line.addr;
 		axi3_wr_if.axi3_wr_req.awburst = 2'b01;
 		axi3_wr_if.axi3_wr_req.awlen   = 3'b0000;
 		axi3_wr_if.axi3_wr_req.awsize  = 2'b010;	// 4 bytes
-		axi3_wr_if.axi3_wr_req.wstrb   = transfer_line[$bits(line_t) - 2 -: $bits(be_t)];
-		axi3_wr_if.axi3_wr_req.awaddr  = {transfer_line[DATA_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH], {($bits(phys_t) - LABEL_WIDTH){1'b0}}};
-		axi3_wr_if.axi3_wr_req.wdata   = transfer_line[DATA_WIDTH - 1:0];
+		axi3_wr_if.axi3_wr_req.wstrb   = transfer_line.be;
+		axi3_wr_if.axi3_wr_req.awaddr  = transfer_line.addr;
+		axi3_wr_if.axi3_wr_req.wdata   = transfer_line.wrdata;
 		axi3_wr_if.axi3_wr_req.bready  = 1'b1;
 		case (state)
 			DP_WAIT_AWREADY: axi3_wr_if.axi3_wr_req.awvalid = 1'b1;
@@ -168,20 +158,21 @@ end else begin
 
 	// set rline, only for load
 	always_comb begin
-		rline_n     = '0;
-		rline_vld_n = 1'b0;
+		lsu_uncached_resp = '0;
 		case (state)
 			// store complete
 			DP_WAIT_BVALID:
 				if (axi3_wr_if.axi3_wr_resp.bvalid) begin
-					rline_n = transfer_line;
-					rline_vld_n = 1'b1;
+					lsu_uncached_resp.lsu_idx = transfer_line.lsu_idx;
+					// should not set rddata_vld as 1, for store commit after issue
+					lsu_uncached_resp.rddata_vld = 1'b1;
 				end
 			// load complete
 			DP_READ:
 				if (axi3_rd_if.axi3_rd_resp.rvalid) begin
-					rline_n = {transfer_line[$bits(line_t) - 1 : $bits(data_t)], axi3_rd_if.axi3_rd_resp.rdata};
-					rline_vld_n = 1'b1;
+					lsu_uncached_resp.lsu_idx    = transfer_line.lsu_idx;
+					lsu_uncached_resp.rddata     = axi3_rd_if.axi3_rd_resp.rdata;
+					lsu_uncached_resp.rddata_vld = 1'b1;
 				end
 		endcase
 	end
@@ -191,10 +182,10 @@ end else begin
 		state_n = state;
 		case (state)
 			DP_IDLE:
-				if (~empty && (transfer_line_n[$bits(line_t) - 1] == TYPE_LOAD)) begin
+				if (~empty && transfer_line_n.read) begin
 					// means load type
 					state_n = DP_WAIT_ARREADY;
-				end else if (~empty && (transfer_line_n[$bits(line_t) - 1] == TYPE_STORE)) begin
+				end else if (~empty && transfer_line_n.write) begin
 					// means load type
 					state_n = DP_WAIT_AWREADY;
 				end
@@ -210,12 +201,8 @@ end else begin
 	always_ff @ (posedge clk) begin
 		if (rst) begin
 			state     <= DP_IDLE;
-			rline     <= '0;
-			rline_vld <= '0;
 		end else begin
 			state     <= state_n;
-			rline     <= rline_n;
-			rline_vld <= rline_vld_n;
 		end
 	end
 end endgenerate
