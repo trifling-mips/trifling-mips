@@ -8,6 +8,12 @@
 // cache defs
 `include "cache_defs.svh"
 
+// funcs
+`define DEF_STRUCT_TAG_T typedef struct packed { \
+	logic valid; \
+	logic [TAG_WIDTH - 1:0] tag; \
+} tag_t;
+
 typedef enum logic [2:0] {
 	ICACHE_IDLE,
 	ICACHE_WAIT_COMMIT,

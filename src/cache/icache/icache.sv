@@ -54,7 +54,7 @@ index_t pipe1_inv_index;
 // repl
 logic [GROUP_NUM - 1:0][$clog2(SET_ASSOC) - 1:0] pipe1_repl_index;
 // prefetch
-logic [LABEL_WIDTH - 1:0] pipe1_sb_label_o;
+label_t pipe1_sb_label_o;
 logic [LINE_WIDTH - 1:0] pipe1_sb_line;
 logic pipe1_sb_line_vld;
 // stage 2(pipe 1 - 2)
@@ -78,7 +78,7 @@ index_t stage2_data_raddr, stage2_ram_waddr;
 // repl
 logic [$clog2(SET_ASSOC) - 1:0] stage2_assoc_waddr, stage2_repl_index_waddr;
 // prefetch
-logic [LABEL_WIDTH - 1:0] stage2_sb_label_i;
+label_t stage2_sb_label_i;
 logic stage2_sb_label_i_rdy;
 // pipe 2(data access)
 // ram req for tag & data
