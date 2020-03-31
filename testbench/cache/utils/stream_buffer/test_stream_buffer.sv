@@ -29,10 +29,10 @@ end
 
 // interface define
 logic [LABEL_WIDTH - 1:0] label_i;
-logic label_i_rdy;
+logic label_i_rdy, inv;
 logic [LABEL_WIDTH - 1:0] label_o;	// label(tag + index)
 logic [LINE_WIDTH - 1:0]  data;
-logic data_vld;
+logic data_vld, ready;
 axi3_rd_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_rd_if();
 axi3_wr_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_wr_if();
 // inst module
@@ -111,28 +111,21 @@ task unittest_(
 		// wait negedge clk to ensure line_data already update
 		@ (negedge clk);
 		cycle = cycle + 1;
+		// reset control signals
+		inv = 1'b0;
+		label_i_rdy = 1'b0;
 		if (data_vld) begin
 			// data is valid, ready to compare
 			$sformat(out, {"%x"}, data);
 			judge(fans, ans_counter, out);
 			ans_counter = ans_counter + 1;
-			// issue next req
-			if (!$feof(freq)) begin
-				label_i = get_req(freq);
-				label_i_rdy = 1'b1;
-				req_counter = req_counter + 1;
-			end else begin
-				label_i_rdy = 1'b1;
-			end
-		end else if (req_counter == 0 && ans_counter == 0) begin
-			// issue first req
-			if (!$feof(freq)) begin
-				label_i = get_req(freq);
-				label_i_rdy = 1'b1;
-				req_counter = req_counter + 1;
-			end
-		end else begin
-			label_i_rdy = 1'b0;
+		end
+
+		// issue first req
+		if (ready && !$feof(freq)) begin
+			label_i = get_req(freq);
+			label_i_rdy = 1'b1;
+			req_counter = req_counter + 1;
 		end
 	end
 
