@@ -56,7 +56,7 @@ logic [GROUP_NUM - 1:0][$clog2(SET_ASSOC) - 1:0] pipe1_repl_index;
 // prefetch
 label_t pipe1_sb_label_o;
 logic [LINE_WIDTH - 1:0] pipe1_sb_line;
-logic pipe1_sb_line_vld, pipe1_sb_ready;
+logic pipe1_sb_line_vld, pipe1_sb_label_o_vld;
 // stage 2(pipe 1 - 2)
 // state
 icache_state_t stage2_state, stage2_state_n;
@@ -93,7 +93,7 @@ logic [DATA_WIDTH - 1:0] pipe3_data_rdata;
 logic pipe3_data_rdata_vld;
 
 // stage 1
-assign stage1_tag_raddr = get_index(ibus.addr);
+assign stage1_tag_raddr = ibus.stall ? get_index(pipe1_addr) : get_index(ibus.addr);
 
 // pipe 1
 always_ff @ (posedge clk) begin
@@ -124,9 +124,9 @@ stream_buffer #(
 	.label_i_rdy(stage2_sb_label_i_rdy),
 	.inv(pipe1_inv),
 	.label_o(pipe1_sb_label_o),
+	.label_o_vld(pipe1_sb_label_o_vld),
 	.data(pipe1_sb_line),
 	.data_vld(pipe1_sb_line_vld),
-	.ready(pipe1_sb_ready),
 	.*
 );
 // check cache_miss
@@ -134,14 +134,14 @@ for(genvar i = 0; i < SET_ASSOC; ++i) begin : gen_icache_hit
 	assign stage2_hit[i] = pipe1_tag_rdata1[i].valid & (get_tag(pipe1_addr) == pipe1_tag_rdata1[i].tag);
 end
 assign stage2_cache_miss = ~(|stage2_hit) & pipe1_read;
-assign stage2_prefetch_hit = (pipe1_sb_label_o == get_label(pipe1_addr)) & pipe1_read;
+assign stage2_prefetch_hit = (pipe1_sb_label_o == get_label(pipe1_addr) && pipe1_sb_label_o_vld) & pipe1_read;
 // next line
 assign stage2_addr_plus1 = pipe1_addr + (1'b1 << LINE_BYTE_OFFSET);
 for(genvar i = 0; i < SET_ASSOC; ++i) begin : gen_icache_hit_plus1
 	assign stage2_hit_plus1[i] = pipe1_tag_rdata2[i].valid & (get_tag(stage2_addr_plus1) == pipe1_tag_rdata2[i].tag);
 end
 assign stage2_cache_miss_plus1 = ~(|stage2_hit_plus1) & pipe1_read & ~stage2_inv_rtag2;		// after tag write, inv rtag2
-assign stage2_prefetch_hit_plus1 = (pipe1_sb_label_o == get_label(stage2_addr_plus1)) & pipe1_read;
+assign stage2_prefetch_hit_plus1 = (pipe1_sb_label_o == get_label(stage2_addr_plus1) && pipe1_sb_label_o_vld) & pipe1_read;
 // repl
 assign stage2_repl_index_waddr = pipe1_repl_index[get_index(pipe1_addr)];
 always_comb begin
@@ -158,27 +158,15 @@ always_comb begin
 			if (~stage2_cache_miss) begin
 				// cache hit
 				stage2_state_n = ICACHE_IDLE;
-			end else if (~stage2_prefetch_hit) begin
+			end else if (~stage2_prefetch_hit || ~pipe1_sb_line_vld) begin
 				// none hit, start a new req
-				// BOOT_ADDR cannot be 00000000
-				stage2_state_n = ICACHE_WAIT_COMMIT;
-			end else if (~pipe1_sb_line_vld) begin
-				// prefetch hit, on transfering
 				stage2_state_n = ICACHE_FETCH;
 			end else if (~stage2_inv_rtag1) begin
 				// prefetch hit, move line_data
 				stage2_state_n = ICACHE_PREFETCH_LOAD;
 			end
-		ICACHE_WAIT_COMMIT: begin
-			if (pipe1_sb_label_o == get_label(pipe1_addr)) begin
-				// req accept
-				stage2_state_n = ICACHE_FETCH;
-			end
-
-			if (ibus.flush_2) stage2_state_n = ICACHE_IDLE;
-		end
 		ICACHE_FETCH: begin
-			if (pipe1_sb_line_vld) begin
+			if (pipe1_sb_line_vld && stage2_prefetch_hit) begin
 				// fetch complete
 				stage2_state_n = ICACHE_IDLE;
 			end
@@ -205,10 +193,8 @@ always_comb begin
 				stage2_sb_label_i = get_label(pipe1_addr) + 1;
 				stage2_sb_label_i_rdy = 1'b1;
 			end
-		ICACHE_WAIT_COMMIT:
-			if (pipe1_sb_label_o == get_label(pipe1_addr)) begin
-				// sb has accept req
-			end else begin
+		ICACHE_FETCH:
+			if (~stage2_prefetch_hit) begin
 				// fetch
 				stage2_sb_label_i = get_label(pipe1_addr);
 				stage2_sb_label_i_rdy = 1'b1;
@@ -228,7 +214,7 @@ always_comb begin
 	stage2_inv_cnt_n   = '0;
 	case (stage2_state)
 		ICACHE_FETCH:
-			if (pipe1_sb_line_vld) begin
+			if (pipe1_sb_line_vld && stage2_prefetch_hit) begin
 				// fetch complete
 				stage2_tag_we[stage2_assoc_waddr] = 1'b1;
 				stage2_data_we[stage2_assoc_waddr] = 1'b1;
