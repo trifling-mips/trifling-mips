@@ -32,7 +32,7 @@ logic [LABEL_WIDTH - 1:0] label_i;
 logic label_i_rdy, inv;
 logic [LABEL_WIDTH - 1:0] label_o;	// label(tag + index)
 logic [LINE_WIDTH - 1:0]  data;
-logic data_vld, ready;
+logic data_vld, label_o_vld;
 axi3_rd_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_rd_if();
 axi3_wr_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_wr_if();
 // inst module
