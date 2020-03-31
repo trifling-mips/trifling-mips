@@ -56,7 +56,7 @@ logic [GROUP_NUM - 1:0][$clog2(SET_ASSOC) - 1:0] pipe1_repl_index;
 // prefetch
 label_t pipe1_sb_label_o;
 logic [LINE_WIDTH - 1:0] pipe1_sb_line;
-logic pipe1_sb_line_vld;
+logic pipe1_sb_line_vld, pipe1_sb_ready;
 // stage 2(pipe 1 - 2)
 // state
 icache_state_t stage2_state, stage2_state_n;
@@ -122,9 +122,11 @@ stream_buffer #(
 ) icache_prefetch (
 	.label_i(stage2_sb_label_i),
 	.label_i_rdy(stage2_sb_label_i_rdy),
+	.inv(pipe1_inv),
 	.label_o(pipe1_sb_label_o),
 	.data(pipe1_sb_line),
 	.data_vld(pipe1_sb_line_vld),
+	.ready(pipe1_sb_ready),
 	.*
 );
 // check cache_miss
