@@ -19,27 +19,27 @@ module stream_buffer #(
 	axi3_rd_if.master	axi3_rd_if,
 	// line_data
 	output	logic	[LABEL_WIDTH - 1:0]	label_o,	// label(tag + index)
+	output	logic						label_o_vld,
 	output	logic	[LINE_WIDTH - 1:0]	data,
-	output	logic						data_vld,
-	output	logic						ready
+	output	logic						data_vld
 );
 
 phys_t axi_raddr;
 logic [LINE_BYTE_OFFSET - 1:0] burst_cnt, burst_cnt_n;
 logic [LABEL_WIDTH - 1:0] label_n;
-logic data_vld_n;
+logic data_vld_n, label_o_vld_n;
 logic [(LINE_WIDTH / 32) - 1:0][31:0] line_data;
 sb_state_t state, state_n;
 
 // assign output
 assign data     = line_data;
-assign ready    = (state == SB_IDLE);
 
 always_comb begin
 	// update reg_n
-	label_n = label_o;		// let upper module to plus 1
-	burst_cnt_n = burst_cnt;
-	data_vld_n  = data_vld;
+	label_n       = label_o;		// let upper module to plus 1
+	burst_cnt_n   = burst_cnt;
+	label_o_vld_n = label_o_vld;
+	data_vld_n    = data_vld;
 
 	// AXI read defaults
 	axi3_rd_if.arid        = ARID;
@@ -52,8 +52,9 @@ always_comb begin
 	case (state)
 		SB_IDLE:
 			if (label_i_rdy && ~inv) begin
-				label_n    = label_i;
-				data_vld_n = 1'b0;
+				label_n       = label_i;
+				label_o_vld_n = 1'b1;
+				data_vld_n    = 1'b0;
 			end
 		SB_WAIT_AXI_READY, SB_FLUSH_WAIT_AXI_READY: begin
 			burst_cnt_n = '0;
@@ -104,11 +105,13 @@ end
 // update next
 always_ff @ (posedge clk) begin
 	if (rst || inv) begin
-		data_vld <= 1'b0;
-		label_o  <= '0;
+		data_vld    <= 1'b0;
+		label_o     <= '0;
+		label_o_vld <= 1'b0;
 	end else begin
-		data_vld <= data_vld_n;
-		label_o  <= label_n;
+		data_vld    <= data_vld_n;
+		label_o     <= label_n;
+		label_o_vld <= label_o_vld_n;
 	end
 
 	if (state == SB_RECEIVING && axi3_rd_if.axi3_rd_resp.rvalid) begin
