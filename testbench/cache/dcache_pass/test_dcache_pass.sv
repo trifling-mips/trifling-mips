@@ -11,15 +11,7 @@ module test_dcache_pass #(
 	// icache - 0(only arid), dcache - 1(both arid and awid), dcache_pass - 2(both arid and awid)
 	parameter	ARID			=	2,
 	parameter	AWID			=	2,
-	parameter	DATA_DEPTH		=	8,
-	// local parameter
-	localparam int unsigned LABEL_WIDTH = $bits(phys_t) - $clog2(DATA_WIDTH / $bits(uint8_t)),
-	// parameter for type
-	parameter type be_t    = logic [(DATA_WIDTH / $bits(uint8_t)) - 1:0],
-	parameter type label_t = logic [LABEL_WIDTH - 1:0],
-	parameter type data_t  = logic [DATA_WIDTH  - 1:0],
-	// line_t ls_type(0 - store, l - load) ---- wbe ---- label_t ---- data_t
-	parameter type line_t  = logic [$bits(be_t) + $bits(label_t) + $bits(data_t):0]
+	parameter	DATA_DEPTH		=	8
 ) (
 
 );
@@ -32,8 +24,9 @@ always_ff @ (posedge clk) begin
 end
 
 // interface define
-line_t pline, rline;
-logic push, full, rline_vld;
+lsu_req lsu_uncached_req;
+lsu_resp lsu_uncached_resp;
+logic push, full;
 axi3_rd_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_rd_if();
 axi3_wr_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_wr_if();
 // inst module
@@ -64,6 +57,7 @@ task unittest_(
 );
 	string fmem_name, fmem_path, fans_name, fans_path, freq_name, freq_path, out;
 	integer fmem, fans, freq, mem_counter, ans_counter, req_counter, cycle;
+	logic ls_type;
 
 	fmem_name = {mem_prefix, ".mem"};
 	fmem_path = get_path(fmem_name);
@@ -116,26 +110,27 @@ task unittest_(
 
 		// reset control signals
 		push = 1'b0;
+		lsu_uncached_req = 1'b0;
 
 		// issue req
 		if (~full && !$feof(freq)) begin
 			$fscanf(freq, "%x %x %x %x\n", 
-				pline[$bits(line_t) - 1], 
-				pline[$bits(line_t) - 2 -: $bits(be_t)], 
-				pline[$bits(line_t) - 2 - $bits(be_t) -: $bits(label_t)], 
-				pline[$bits(line_t) - 2 - $bits(be_t) - $bits(label_t) -: $bits(data_t)]
+				ls_type, 
+				lsu_uncached_req.be, 
+				lsu_uncached_req.addr, 
+				lsu_uncached_req.wrdata
 			);
+			lsu_uncached_req.write = ~ls_type;
+			lsu_uncached_req.read  = ls_type;
 			push  = 1'b1;
 			req_counter = req_counter + 1;
 		end
 
 		// check ans
-		if (rline_vld) begin
-			$sformat(out, {"%x-%x-%x-%x"}, 
-				rline[$bits(line_t) - 1], 
-				rline[$bits(line_t) - 2 -: $bits(be_t)], 
-				rline[$bits(line_t) - 2 - $bits(be_t) - $bits(label_t) + ADDR_WIDTH -: ADDR_WIDTH], 
-				rline[$bits(line_t) - 2 - $bits(be_t) - $bits(label_t) -: $bits(data_t)]
+		if (lsu_uncached_resp.rddata_vld) begin
+			$sformat(out, {"%x-%x"}, 
+				lsu_uncached_resp.lsu_idx,
+				lsu_uncached_resp.rddata
 			);
 			judge(fans, ans_counter, out);
 			ans_counter = ans_counter + 1;

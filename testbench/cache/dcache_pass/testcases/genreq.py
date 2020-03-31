@@ -62,17 +62,17 @@ def gen_random_req(n_req = N_REQ):
 				for j in range(STRB_WIDTH):
 					wbe.append(0)
 				wdata = ("%0" + str(DATA_WIDTH // 4) + "x") % 0
-			freq.write(fm % (ls_type, lst2num(wbe), addr, wdata))
+			freq.write(fm % (ls_type, lst2num(wbe), (addr << int(math.log2(STRB_WIDTH))), wdata))
 			# get corresponding data
 			if ls_type == 1:	# load
 				rdata = getdata(addr)
-				fm = "%01x-%01x-%0" + str(math.ceil(VALID_ADDR_WIDTH / 4)) + "x-%s\n"
+				fm = "%01x-%s\n"
 				with open(ans_file, "a") as f:
-					f.write(fm % (ls_type, lst2num(wbe), addr, rdata))
+					f.write(fm % (0, rdata))
 			else:
-				fm = "%01x-%01x-%0" + str(math.ceil(VALID_ADDR_WIDTH / 4)) + "x-%s\n"
+				fm = "%01x-%s\n"
 				with open(ans_file, "a") as f:
-					f.write(fm % (ls_type, lst2num(wbe), addr, wdata))
+					f.write(fm % (0, ("%0" + str(DATA_WIDTH // 4) + "x") % 0))
 				wrdata(addr, wbe, wdata)
 				if random.randint(0, 1) == 1:
 					if index < n_req:
@@ -82,11 +82,11 @@ def gen_random_req(n_req = N_REQ):
 						for j in range(STRB_WIDTH):
 							wbe.append(0)
 						wdata = ("%0" + str(DATA_WIDTH // 4) + "x") % 0
-						freq.write(fm % (ls_type, lst2num(wbe), addr, wdata))
+						freq.write(fm % (ls_type, lst2num(wbe), (addr << int(math.log2(STRB_WIDTH))) , wdata))
 						rdata = getdata(addr)
-						fm = "%01x-%01x-%0" + str(math.ceil(VALID_ADDR_WIDTH / 4)) + "x-%s\n"
+						fm = "%01x-%s\n"
 						with open(ans_file, "a") as f:
-							f.write(fm % (ls_type, lst2num(wbe), addr, rdata))
+							f.write(fm % (0, rdata))
 						index += 1
 
 def sequential():
