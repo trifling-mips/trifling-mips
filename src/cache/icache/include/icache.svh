@@ -14,7 +14,7 @@
 	logic [TAG_WIDTH - 1:0] tag; \
 } tag_t;
 
-typedef enum logic [2:0] {
+typedef enum logic [1:0] {
 	ICACHE_IDLE,
 	ICACHE_FETCH,
 	ICACHE_PREFETCH_LOAD,
