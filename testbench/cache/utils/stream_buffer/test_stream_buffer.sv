@@ -122,7 +122,7 @@ task unittest_(
 		end
 
 		// issue first req
-		if (ready && !$feof(freq)) begin
+		if ((data_vld || (req_counter == 0 && ans_counter == 0)) && !$feof(freq)) begin
 			label_i = get_req(freq);
 			label_i_rdy = 1'b1;
 			req_counter = req_counter + 1;

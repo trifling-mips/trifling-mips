@@ -40,7 +40,8 @@ label_t query_label;
 logic query_found, query_on_pop, write, written;
 data_t query_wdata, query_rdata;
 be_t query_wbe;
-logic query_found_wb;
+logic query_found_wb, clear;
+// for identity_device
 logic [LINE_WIDTH - 1:0] line_recv;
 logic line_recv_vld;
 // inst module

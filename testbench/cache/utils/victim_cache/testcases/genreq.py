@@ -85,7 +85,8 @@ def gen_rand_req():
 	if (len(mem_list)) == 0:
 		return 0
 	elif (len(mem_list)) == LINE_DEPTH:
-		return random.randint(1, len(req_list) - 1)
+		# return random.randint(1, len(req_list) - 1)
+		return 1 if random.randint(0, 1) == 0 else 3		# cannot pp
 	else:
 		return random.randint(0, len(req_list) - 1)
 
