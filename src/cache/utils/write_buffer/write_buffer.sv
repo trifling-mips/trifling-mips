@@ -52,7 +52,6 @@ wb_state_t state, state_n;
 logic empty;
 line_t wb_line, wb_line_n;
 logic wb_vld, wb_vld_n;
-phys_t wb_addr, wb_addr_n;
 logic [BURST_LIMIT:0][31:0] wb_burst_line;
 logic [LINE_BYTE_OFFSET - 1:0] wb_burst_cnt, wb_burst_cnt_n;
 assign wb_burst_line = wb_line[LINE_WIDTH - 1:0];		// reshape
@@ -82,13 +81,13 @@ assign query_rdata = query_found ? query_rdata_vic : wb_line[LINE_WIDTH - 1:0];
 // state machine(part)
 always_comb begin
 	pop = 1'b0;
-	wb_addr_n = wb_addr;
 	wb_line_n = wb_line;
 	case(state)
 		WB_IDLE: begin
-			pop = 1'b1;
-			wb_addr_n = {rline[LINE_WIDTH + LABEL_WIDTH + 1 -: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
-			wb_line_n = rline[LINE_WIDTH - 1:0];
+			if (~empty) begin
+				pop = 1'b1;
+				wb_line_n = rline;
+			end
 		end
 	endcase
 end
@@ -103,12 +102,10 @@ assign empty       = ~pushed;			// not handling burst_wr req
 
 // state machine(part)
 always_comb begin
-	wb_addr_n = wb_addr;
 	wb_line_n = wb_line;
 	case(state)
 		WB_IDLE: begin
-			wb_addr_n = {pline[LINE_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
-			wb_line_n = pline[LINE_WIDTH - 1:0];
+			wb_line_n = pline;
 		end
 	endcase
 end
@@ -131,7 +128,7 @@ always_comb begin
 	axi3_wr_if.axi3_wr_req.awsize  = 2'b010;
 	axi3_wr_if.axi3_wr_req.awlen   = BURST_LIMIT;
 	axi3_wr_if.axi3_wr_req.awburst = 2'b01;
-	axi3_wr_if.axi3_wr_req.awaddr  = wb_addr;
+	axi3_wr_if.axi3_wr_req.awaddr  = {wb_line[LINE_WIDTH + LABEL_WIDTH - 1 -: LABEL_WIDTH], {LINE_BYTE_OFFSET{1'b0}}};
 	axi3_wr_if.axi3_wr_req.awlock  = '0;
 	axi3_wr_if.axi3_wr_req.awprot  = '0;
 	axi3_wr_if.axi3_wr_req.awcache = '0;
@@ -142,7 +139,7 @@ always_comb begin
 
 	case(state)
 		WB_IDLE: begin
-			if(~empty) begin
+			if (~empty) begin
 				wb_vld_n = 1'b1;
 				state_n  = WB_WAIT_AWREADY;
 			end
@@ -181,13 +178,11 @@ end
 always_ff @ (posedge clk) begin
 	if (rst) begin
 		state   <= WB_IDLE;
-		wb_addr <= '0;
 		wb_line <= '0;
 		wb_vld  <= '0;
 		wb_burst_cnt <= '0;
 	end else begin
 		state   <= state_n;
-		wb_addr <= wb_addr_n;
 		wb_line <= wb_line_n;
 		wb_vld  <= wb_vld_n;
 		wb_burst_cnt <= wb_burst_cnt_n;

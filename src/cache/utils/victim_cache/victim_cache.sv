@@ -110,7 +110,7 @@ end else begin
 		end
 
 		// push one line
-		if(push && ~(full && ~pop)) begin
+		if(push && ~full) begin
 			mem_n[tail] = pline;
 			valid_n[tail] = 1'b1;
 
@@ -123,11 +123,6 @@ end else begin
 			// cnt_n = cnt+1;
 
 			pushed = 1'b1;
-		end
-
-		// push & pop one line
-		if(push && ~full && pop && ~empty) begin
-			// cnt_n = cnt;
 		end
 
 		// write(modify) one line

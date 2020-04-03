@@ -78,7 +78,7 @@ end
 // update state
 always_comb begin
 	state_n = state;
-	unique case(state)
+	case(state)
 		SB_IDLE:
 			if (label_i_rdy & ~inv)
 				state_n = SB_WAIT_AXI_READY;
