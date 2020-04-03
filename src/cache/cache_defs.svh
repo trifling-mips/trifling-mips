@@ -32,20 +32,29 @@ endfunction
 	input logic [DATA_WIDTH - 1:0] wdata, \
 	input logic [(DATA_WIDTH / $bits(uint8_t)) - 1:0] sel \
 ); \
-	uint8_t r_data[(DATA_WIDTH / $bits(uint8_t)) - 1:0]; \
-	uint8_t w_data[(DATA_WIDTH / $bits(uint8_t)) - 1:0]; \
-	uint8_t mux_data[(DATA_WIDTH / $bits(uint8_t)) - 1:0]; \
+	uint8_t [(DATA_WIDTH / $bits(uint8_t)) - 1:0] r_data, w_data, mux_data; \
  \
-	// reshape data \
+	// reshape \
 	assign r_data = rdata; \
 	assign w_data = wdata; \
-	// sel data \
-	generate for (genvar i = 0; i < (DATA_WIDTH / $bits(uint8_t)); i++) begin \
-			assign mux_data[i] = sel[i] ? w_data[i] : w_data[i]; \
-		end \
-	endgenerate \
+	// select \
+	for (integer i = 0; i < (DATA_WIDTH / $bits(uint8_t)); i++) \
+		mux_data[i] = sel[i] ? w_data[i] : r_data[i]; \
  \
 	return mux_data; \
+ \
+endfunction
+`define DEF_FUNC_MUX_TAG function tag_t[SET_ASSOC - 1:0] mux_tag ( \
+	input tag_t [SET_ASSOC - 1:0] rtag, \
+	input tag_t wtag, \
+	input [SET_ASSOC - 1:0] sel \
+); \
+	tag_t [SET_ASSOC - 1:0] muxtag; \
+	// select \
+	for (integer i = 0; i < SET_ASSOC; i++) \
+		muxtag[i] = sel[i] ? wtag : rtag[i]; \
+ \
+	return muxtag; \
  \
 endfunction
 
