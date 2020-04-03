@@ -87,7 +87,7 @@ logic stage2_prefetch_hit, stage2_prefetch_hit_plus1;
 // ram req for tag
 index_t stage2_tag_waddr;
 tag_t stage2_tag_wdata;
-tag_t [SET_ASSOC - 1:0] stage2_tag_rdata1, stage2_tag_rdata1_n, stage2_tag_mux, stage2_tag_mux_n, stage2_tag_mux_r, stage2_tag_mux_r_n;
+tag_t [SET_ASSOC - 1:0] stage2_tag_rdata1, stage2_tag_rdata1_n, stage2_tag_mux;
 logic [SET_ASSOC - 1:0] stage2_tag_we;
 logic stage2_assoc_pushed, stage2_need_push, stage2_need_push_n;
 // ram req for data
@@ -135,7 +135,10 @@ label_t pipe3_data_wlabel;
 line_t pipe3_data_wdata;
 
 // stage 1(before pipe 1)
-assign stage1_tag_raddr = get_index(dbus.lsu_req.addr);
+always_comb begin
+	stage1_tag_raddr = get_index(dbus.lsu_req.addr);
+	if (dbus.stall) stage1_tag_raddr = get_index(pipe1_req.addr);
+end
 
 // pipe 1(tag access)
 always_ff @ (posedge clk) begin
@@ -319,19 +322,10 @@ assign stage2_tag_wdata.valid = (stage2_state != DCACHE_INVALIDATING) && (stage2
 assign stage2_tag_wdata.tag   = get_tag(pipe1_req.addr);
 assign stage2_assoc_pushed    = ~stage2_need_push || ~(stage2_wb_push && pipe1_wb_full);
 // mux pipe1_tag_rdata1 & pipe1_tag_wdata
-assign stage2_tag_mux   = (stage2_state == DCACHE_IDLE) ? stage2_tag_mux_n : stage2_tag_mux_r;
-assign stage2_tag_mux_n = mux_tag(pipe1_tag_rdata1, pipe1_tag_wdata, {SET_ASSOC{stage2_wtag_last}} & pipe1_tag_we);
-always_ff @ (posedge clk) begin
-	if (rst) begin
-		stage2_tag_mux_r <= '0;
-	end else begin
-		stage2_tag_mux_r <= stage2_tag_mux_r_n;
-	end
-end
+assign stage2_tag_mux   = mux_tag(pipe1_tag_rdata1, pipe1_tag_wdata, {SET_ASSOC{stage2_wtag_last}} & pipe1_tag_we);
 always_comb begin
 	stage2_tag_rdata1_n = stage2_tag_rdata1;
 	stage2_need_push_n  = stage2_need_push;
-	stage2_tag_mux_r_n  = stage2_tag_mux_r;
 
 	stage2_wb_push      = 1'b0;
 	stage2_wb_plabel    = {stage2_tag_rdata1[stage2_assoc_waddr].tag, get_index(pipe1_req.addr)};
@@ -345,12 +339,10 @@ always_comb begin
 				// if last period write tag, for we use lut store tag, do matter, pipe1_tag_rdata1 is not updated, use stage2_tag_mux
 				stage2_need_push_n  = stage2_tag_mux[stage2_assoc_waddr].valid && stage2_tag_mux[stage2_assoc_waddr].dirty;
 				stage2_tag_rdata1_n = stage2_tag_mux;
-				stage2_tag_mux_r_n  = stage2_tag_mux_n;
 			end
 			// inv need wb all assoc way
 			if (pipe1_inv) begin
 				stage2_tag_rdata1_n = stage2_tag_mux;
-				stage2_tag_mux_r_n  = stage2_tag_mux_n;
 			end
 		end
 		DCACHE_FETCH, DCACHE_PREFETCH_LOAD, DCACHE_WAIT_WB: begin
