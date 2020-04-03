@@ -35,7 +35,7 @@ end else begin
 	typedef logic [ADDR_WIDTH - 1:0] addr_t;
 
 	// control signals
-	logic empty, pop, pushed, poped;
+	logic empty, pop, poped, pushed;
 	// state
 	dp_state_t state, state_n;
 	// pointer
@@ -75,7 +75,7 @@ end else begin
 		end
 
 		// push one line
-		if(push && ~(full && ~pop)) begin
+		if(push && ~full) begin
 			mem_n[tail] = lsu_uncached_req;
 			valid_n[tail] = 1'b1;
 
