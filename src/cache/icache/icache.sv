@@ -159,7 +159,7 @@ always_comb begin
 				// cache hit
 				stage2_state_n = ICACHE_IDLE;
 			end else if (~stage2_prefetch_hit || ~pipe1_sb_line_vld) begin
-				// none hit, start a new req
+				// none hit, or data is invalid ,then start a new req
 				stage2_state_n = ICACHE_FETCH;
 			end else if (~stage2_inv_rtag1) begin
 				// prefetch hit, move line_data
@@ -174,7 +174,7 @@ always_comb begin
 			if (ibus.flush_2) stage2_state_n = ICACHE_IDLE;
 		end
 		ICACHE_PREFETCH_LOAD: stage2_state_n = ICACHE_IDLE;
-		ICACHE_INVALIDATING:
+		ICACHE_INVALIDATING: //等到tag的有效位都为0，才能进入工作状态IDLE
 			if(&stage2_inv_cnt) stage2_state_n = ICACHE_IDLE;
 	endcase
 end

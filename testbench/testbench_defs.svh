@@ -9,7 +9,14 @@
 `include "common_defs.svh"
 
 // funcs
+//该宏在实际使用中时常会被修改 表示从testbench开始的相对路径
 `define PATH_PREFIX "testbench"
+/*
+*该函数用于返回文件的相对路径 需要保证可以通过(../)*testbench的形式找到testbench目录
+*如果上级目录中没有testbench目录，那么会返回空
+*@name 文件名 
+*@return 相对路径+文件名或 ""
+*/
 `define DEF_FUNC_GET_PATH function string get_path( \
 	input string name \
 ); \
