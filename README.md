@@ -1,13 +1,12 @@
 # trifling-mips
 a trifling mips implementation.
 
-
-
-# vavido
-如果你想要对项目进行仿真，请在根目录下创建vivado项目，典型的目录结构如下
+# vivado
+If you want to simulate the project, please create vivado project in the root directory. The typical directory structure is as follows
 .git
 src
 testbench
 ...
-vivado 		<-在这里创建vivado工程并添加文件(不需要copy到项目中)
+vivado 		<-create vivado project and add files here (no need to copy to the project)
 ...
+
