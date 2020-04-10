@@ -38,14 +38,14 @@ assign resp.paddr[11:0] = vaddr[11:0];
 always_comb begin
     if (matched_sel) begin
         resp.dirty        = matched_entry.d1;
-		resp.valid        = matched_entry.v1;
-		resp.cache_flag   = matched_entry.c1;
-		resp.paddr[31:12] = matched_entry.pfn1[19:0];
+        resp.valid        = matched_entry.v1;
+        resp.cache_flag   = matched_entry.c1;
+        resp.paddr[31:12] = matched_entry.pfn1[19:0];
     end else begin
         resp.dirty        = matched_entry.d0;
-		resp.valid        = matched_entry.v0;
-		resp.cache_flag   = matched_entry.c0;
-		resp.paddr[31:12] = matched_entry.pfn0[19:0];
+        resp.valid        = matched_entry.v0;
+        resp.cache_flag   = matched_entry.c0;
+        resp.paddr[31:12] = matched_entry.pfn0[19:0];
     end
 end
 

@@ -2,7 +2,7 @@
 `define MMU_SVH
 
 /*
-	This header defines common data structrue & funcs in mmu module
+    This header defines common data structrue & funcs in mmu module
 */
 
 // cpu defs

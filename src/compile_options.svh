@@ -2,8 +2,8 @@
 `define COMPILE_OPTIONS_SVH
 
 /**
-	Options to control optional components to be compiled
-	These options are used to speed up compilation when debugging
+    Options to control optional components to be compiled
+    These options are used to speed up compilation when debugging
 **/
 
 // enable all func unit
@@ -19,7 +19,7 @@
 
 // can change value
 // num of LSU resv
-`define N_RESV_LSU	3
+`define N_RESV_LSU      3
 // num of tlb entries
 `define N_TLB_ENTRIES   32
 

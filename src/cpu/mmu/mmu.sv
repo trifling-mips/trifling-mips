@@ -66,20 +66,20 @@ generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
         .N_ISSUE(N_ISSUE),
         .N_TLB_ENTRIES(N_TLB_ENTRIES)
     ) tlb_inst (
-		.clk,
-		.rst,
-		.asid,
-		.inst_vaddr,
-		.inst_resp(inst_tlb_resp),
-		.data_vaddr,
-		.data_resp(data_tlb_resp),
-		.tlbrw_index,
-		.tlbrw_we,
-		.tlbrw_wrdata,
-		.tlbrw_rddata,
-		.tlbp_entry_hi,
-		.tlbp_index
-	);
+        .clk,
+        .rst,
+        .asid,
+        .inst_vaddr,
+        .inst_resp(inst_tlb_resp),
+        .data_vaddr,
+        .data_resp(data_tlb_resp),
+        .tlbrw_index,
+        .tlbrw_we,
+        .tlbrw_wrdata,
+        .tlbrw_rddata,
+        .tlbp_entry_hi,
+        .tlbp_index
+    );
 end else begin : gen_mmu_disabled_code
     always_comb begin
         inst_resp = '0;

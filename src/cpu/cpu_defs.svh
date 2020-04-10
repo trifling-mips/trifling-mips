@@ -2,7 +2,7 @@
 `define CPU_DEFS_SVH
 
 /*
-	This header defines common data structrue & constants in cpu module
+    This header defines common data structrue & constants in cpu module
 */
 
 // common defs
