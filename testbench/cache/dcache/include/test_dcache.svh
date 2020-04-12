@@ -11,7 +11,7 @@
 `ifdef PATH_PREFIX
 `undef PATH_PREFIX
 `endif
-`define PATH_PREFIX "testbench/cache/dcache/testcases/"
+`define PATH_PREFIX "testbench/cache/testcases/"
 `DEF_FUNC_GET_PATH
 
 typedef enum logic [1:0] {
