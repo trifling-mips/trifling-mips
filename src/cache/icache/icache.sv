@@ -274,6 +274,7 @@ assign ibus.rddata = stage1_data_mux[get_offset(ibus.paddr)];
 // inst stream_buffer
 stream_buffer #(
     .LINE_WIDTH(LINE_WIDTH),
+    .DATA_WIDTH(DATA_WIDTH),
     .ARID(ARID)
 ) icache_prefetch (
     .label_i(stage1_sb_label_i),
