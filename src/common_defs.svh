@@ -21,29 +21,26 @@ typedef uint32_t		virt_t;
 typedef uint32_t		phys_t;
 
 // interface of I$ and CPU
-// I$ is 3-stage pipelined
+// I$ is 1-stage
 interface cpu_ibus_if();
+    // inv_icache
+    logic inv;                  // inv_icache
+    phys_t inv_addr;
 	// control signals
-	logic ready;
-	// indicate that corresponding stage shall be directly terminated.
-	// flush_1 will be '1' whenever flush_2 is '1'.
-	// stall shall be '0' whenever flush_2 is '1'.
-	logic stall;		// stall signal from icache
-	logic flush_1, flush_2, flush_3;
+	logic ready, valid;	        // ready  & valid signal from icache
 	// read signals
-	logic read;			// whether start read req
-	logic rddata_vld;	// whether rddata is valid
-	phys_t addr;		// read addr
-	uint32_t rddata;	// read data
+	virt_t vaddr;		        // read vaddr
+    phys_t paddr, paddr_plus1;  // read paddr, delay one peroid
+	uint32_t rddata;	        // read data
 
 	modport master (
-		input ready, stall, rddata_vld, rddata,
-		output flush_1, flush_2, flush_3, read, addr
+		input ready, rddata, valid
+		output vaddr, paddr, paddr_plus1
 	);
 
-	modport slave (
-		output ready, stall, rddata_vld, rddata,
-		input flush_1, flush_2, flush_3, read, addr
+	modport slave 
+		output ready, rddata, valid
+		input vaddr, paddr, paddr_plus1
 	);
 
 endinterface
@@ -85,7 +82,6 @@ interface cpu_dbus_if();
 
 endinterface
 
-`ifdef AXI3_IF_EN
 // interface for AXI3 read
 typedef struct packed {
 	// ar
@@ -186,6 +182,5 @@ interface axi3_wr_if #(
 	);
 
 endinterface
-`endif
 
 `endif
