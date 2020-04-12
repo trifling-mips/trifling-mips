@@ -58,7 +58,7 @@ always_comb begin
     axi_raddr = {label_o, {LINE_BYTE_OFFSET{1'b0}}};
 
     case (state)
-        SB_IDLE:
+        SB_IDLE: begin
             written_n = write & (&data_vld);
             if (label_i_rdy && ~inv) begin
                 label_n       = label_i;
@@ -66,6 +66,7 @@ always_comb begin
                 data_vld_n    = '0;
                 written_n     = 1'b0;
             end
+        end
         SB_WAIT_AXI_READY, SB_FLUSH_WAIT_AXI_READY: begin
             burst_cnt_n = '0;
             axi3_rd_if.axi3_rd_req.arvalid = 1'b1;
@@ -80,7 +81,7 @@ always_comb begin
         SB_FLUSH_RECEIVING: axi3_rd_if.axi3_rd_req.rready = 1'b1;
     endcase
 end
-always_comb beign
+always_comb begin
     was_hit_n = was_hit;
     // update was_hit_n
     case (state)
