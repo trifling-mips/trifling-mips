@@ -25,10 +25,10 @@
 
 // can undefine
 // whether enable victim cache in write_buffer
-`define VICTIM_CACHE_ENABLE
+`define VICTIM_CACHE_ENABLED
 
 // cannot change
-// enable axi3 interface
-`define AXI3_IF_EN
+// enable icache_prefetch
+`define ICACHE_PREFETCH_ENABLED
 
 `endif
