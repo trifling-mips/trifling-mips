@@ -3,9 +3,10 @@
 
 module mmu #(
     // parameter for ctrl
-    parameter   MMU_ENABLED =   1,
+    parameter   MMU_ENABLED     =   1,
+    parameter   N_INST_CHANNEL  =   2,
     // parameter for cfg
-    parameter   N_ISSUE     =   1,   // temp support single-issue
+    parameter   N_ISSUE         =   1,   // temp support single-issue
     parameter   N_TLB_ENTRIES   =   32
 ) (
     // external signals
@@ -16,8 +17,8 @@ module mmu #(
     input   logic           kseg0_uncached,
     input   logic           is_user_mode,
     // for inst
-    input   virt_t          inst_vaddr,
-    output  mmu_resp_t      inst_resp,
+    input   virt_t      [N_INST_CHANNEL - 1:0]  inst_vaddr,
+    output  mmu_resp_t  [N_INST_CHANNEL - 1:0]  inst_resp,
     // for data
     input   virt_t      [N_ISSUE - 1:0] data_vaddr,
     output  mmu_resp_t  [N_ISSUE - 1:0] data_resp,
@@ -36,18 +37,20 @@ module mmu #(
 `define DEF_FUNC_IS_VADDR_UNCACHED
 
 generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
-    logic inst_mapped;
     logic [N_ISSUE - 1:0] data_mapped;
+    logic [N_INST_CHANNEL - 1:0] inst_mapped;
     tlb_resp_t inst_tlb_resp;
     tlb_resp_t [N_ISSUE - 1:0] data_tlb_resp;
 
-    assign inst_mapped        = is_vaddr_mapped(inst_vaddr);
-    assign inst_resp.miss     = (inst_mapped & inst_tlb_result.miss);
-    assign inst_resp.illegal  = (is_user_mode & inst_vaddr[31]);
-    assign inst_resp.inv      = (inst_mapped & ~inst_tlb_resp.valid);
-    assign inst_resp.uncached = is_vaddr_uncached(inst_vaddr);
-    assign inst_resp.paddr    = inst_mapped ? inst_tlb_resp.paddr : {3'b0, inst_vaddr[28:0]};
-    assign inst_resp.vaddr    = inst_vaddr;
+    for (genvar i = 0; i < N_INST_CHANNEL; ++i) begin : gen_inst_resp
+        assign inst_mapped[i]        = is_vaddr_mapped(inst_vaddr[i]);
+        assign inst_resp[i].miss     = (inst_mapped[i] & inst_tlb_result.miss);
+        assign inst_resp[i].illegal  = (is_user_mode & inst_vaddr[i][31]);
+        assign inst_resp[i].inv      = (inst_mapped[i] & ~inst_tlb_resp.valid);
+        assign inst_resp[i].uncached = is_vaddr_uncached(inst_vaddr[i]);
+        assign inst_resp[i].paddr    = inst_mapped[i] ? inst_tlb_resp.paddr : {3'b0, inst_vaddr[i][28:0]};
+        assign inst_resp[i].vaddr    = inst_vaddr[i];
+    end
 
     // note that dirty = 1 when writable
     for (genvar i = 0; i < N_ISSUE; ++i) begin : gen_data_resp
@@ -64,6 +67,7 @@ generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
     // inst tlb
     tlb #(
         .N_ISSUE(N_ISSUE),
+        .N_INST_CHANNEL(N_INST_CHANNEL)
         .N_TLB_ENTRIES(N_TLB_ENTRIES)
     ) tlb_inst (
         .clk,
@@ -82,9 +86,13 @@ generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
     );
 end else begin : gen_mmu_disabled_code
     always_comb begin
-        inst_resp = '0;
-        inst_resp.dirty = 1'b0;
-        inst_resp.paddr = {3'b0, inst_vaddr[28:0]};
+        // for inst
+        for (int i = 0; i < N_INST_CHANNEL; ++i) begin
+            inst_resp[i] = '0;
+            inst_resp[i].dirty = 1'b0;
+            inst_resp[i].paddr = {3'b0, inst_vaddr[i][28:0]};
+        end
+         // for data
         for (int i = 0; i < N_ISSUE; ++i) begin
             data_resp[i] = '0;
             data_resp[i].dirty    = 1'b1;

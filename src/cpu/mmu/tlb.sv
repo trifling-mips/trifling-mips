@@ -3,6 +3,7 @@
 
 module tlb #(
     parameter   N_ISSUE         =   1,
+    parameter   N_INST_CHANNEL  =   2,
     parameter   N_TLB_ENTRIES   =   32
 ) (
     // external signals
@@ -11,8 +12,8 @@ module tlb #(
     // from cp0
     input   logic   [7:0]   asid,
     // for inst
-    input   virt_t          inst_vaddr,
-    output  tlb_resp_t      inst_resp,
+    input   virt_t      [N_INST_CHANNEL - 1:0]  inst_vaddr,
+    output  tlb_resp_t  [N_INST_CHANNEL - 1:0]  inst_resp,
     // for data
     input   virt_t      [N_ISSUE - 1:0] data_vaddr,
     output  tlb_resp_t  [N_ISSUE - 1:0] data_resp,
@@ -48,14 +49,16 @@ end
 
 // gen tlb_lookup
 // for inst
-tlb_lookup #(
-    .N_TLB_ENTRIES(N_TLB_ENTRIES)
-) inst_lookup (
-    .entries,
-    .vaddr(inst_vaddr),
-    .asid,
-    .resp(inst_resp)
-);
+for (genvar i = 0; i < N_INST_CHANNEL; ++i) begin : gen_inst_lookup
+    tlb_lookup #(
+        .N_TLB_ENTRIES(N_TLB_ENTRIES)
+    ) inst_lookup (
+        .entries,
+        .vaddr(inst_vaddr[i]),
+        .asid,
+        .resp(inst_resp[i])
+    );
+end
 // for data
 for (genvar i = 0; i < N_ISSUE; ++i) begin : gen_data_lookup
     tlb_lookup #(
