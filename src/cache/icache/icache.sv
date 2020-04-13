@@ -109,7 +109,7 @@ end
 // hit from tag_wrdata
 assign stage1_tag_whit      = (get_tag(ibus.paddr) == pipe1_tag_wrdata.tag) & (get_index(ibus.paddr) == pipe1_tag_waddr);
 assign stage1_hit_fr        = pipe1_tag_we & {SET_ASSOC{(pipe1_tag_wrdata.valid & stage1_tag_whit)}};
-assign stage1_hit           = stage1_hit_fr | stage1_hit_rd;
+assign stage1_hit           = stage1_tag_whit ? stage1_hit_fr : stage1_hit_rd;
 assign stage1_cache_miss    = ~(|stage1_hit) & pipe0_read;
 assign stage1_prefetch_hit  = (pipe0_sb_label_o == get_label(ibus.paddr) && pipe0_sb_label_o_vld) & pipe0_read;
 // next line
