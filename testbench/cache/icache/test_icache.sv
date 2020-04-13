@@ -11,15 +11,19 @@ module test_icache #(
     parameter   BUS_WIDTH   =   4,
     parameter   DATA_WIDTH  =   32,
     // parameter for mem_device
-    parameter   ADDR_WIDTH  =   16,
+    parameter   ADDR_WIDTH  =   24,
     // parameter for icache
     parameter   LINE_WIDTH  =   256,
     parameter   SET_ASSOC   =   4,
     parameter   CACHE_SIZE  =   16 * 1024 * 8,
-    parameter   ARID        =   0
+    parameter   ARID        =   0,
+    // local parameter
+    localparam int unsigned N_REQ = 100000
 ) (
 
 );
+
+`DEF_FUNC_MUX_BE
 
 // gen clk & sync_rst
 logic clk, rst, sync_rst;
@@ -68,6 +72,33 @@ assign ibus.paddr_plus1 = pc + (1 << $clog2(LINE_WIDTH / 8));
 // record
 string summary;
 string mem_prefix = "sequential";
+`ifdef TEST_ICACHE_COMMON_TESTCASES
+integer stall_cnt, rd_cnt;
+logic [$clog2(N_REQ + 3):0] req;
+// for sim compare
+logic [N_REQ - 1:0][DATA_WIDTH - 1:0] addr;
+logic [N_REQ - 1:0][DATA_WIDTH - 1:0] data;
+logic [N_REQ - 1:0][(DATA_WIDTH / $bits(uint8_t)) - 1:0] be;
+req_type_t req_type[N_REQ - 1:0];
+req_type_t curr_type;
+byte mode [N_REQ - 1:0];
+
+// record performence
+always_ff @ (posedge sync_rst or posedge ~ibus.ready) begin
+    if(sync_rst) begin
+        stall_cnt <= 0;
+    end else begin
+        stall_cnt <= stall_cnt + 1;
+    end
+end
+always_ff @ (posedge sync_rst or posedge axi3_rd_if.axi3_rd_req.arvalid) begin
+    if(sync_rst) begin
+        rd_cnt <= 0;
+    end else begin
+        rd_cnt <= rd_cnt + 1;
+    end
+end
+`endif
 
 `ifndef TEST_ICACHE_COMMON_TESTCASES
 task unittest_(
@@ -157,7 +188,115 @@ task unittest(
     unittest_(name);
 endtask
 `else
+task unittest_(
+    input string name,
+    input integer n_req,
+    input integer with_be
+);
+    // sim fpointer
+    string fdat_name, fdat_path;
+    integer fdat, cycle;
 
+    // setup sim status
+    fdat_name = {name, ".data"};
+    fdat_path = get_path(fdat_name);
+    if (fdat_path == "") begin
+        $display("[Error] file[%0s] not found!", fdat_name);
+        $stop;
+    end
+    // load sim status
+    begin
+        fdat = $fopen({fdat_path}, "r");
+        for(int i = 0; i < n_req; i++) begin
+            if (with_be == 1)
+                $fscanf(fdat, "%c %h %h %h\n", mode[i], addr[i], data[i], be[i]);
+            else begin
+                $fscanf(fdat, "%c %h %h\n", mode[i], addr[i], data[i]);
+                be[i] = '1;        // write word
+            end
+            case (mode[i])
+                "r": req_type[i] = READ;
+                "w": req_type[i] = WRITE;
+                "i": req_type[i] = INV;
+            endcase
+        end
+        for (int i = n_req; i < N_REQ; i++) begin
+            addr[i]     = '1;
+            data[i]     = '1;
+            be[i]       = '1;
+            req_type[i] = NOP;
+        end
+    end
+
+    // reset inst
+    begin
+        rst = 1'b1;
+        #50 rst = 1'b0;
+    end
+
+    $display("======= unittest: %0s =======", name);
+
+    // reset cycle
+    cycle = 0;
+    req   = 0;
+    while (req <= n_req) begin
+        // wait negedge clk to ensure line_data already update
+        @ (negedge clk);
+        cycle = cycle + 1;
+
+        // reset control signals
+        ibus.inv      = 1'b0;
+        ibus.inv_addr = '0;
+        ibus.read     = 1'b0;
+
+        // check req - 1(only read)
+        if (ibus.valid) begin
+            $display("[%0d] req = %0d, data = %08x", cycle, req - 1, ibus.rddata);
+            if(req_type[req - 1] == READ && ~(ibus.rddata === data[req - 1])) begin
+                $display("[Error] expected = %08x", data[req - 1]);
+                $stop;
+            end
+        end
+
+        // issue req
+        if (ibus.ready) begin
+            curr_type  = req_type[req];
+            npc        = addr[req];
+            ibus.vaddr = npc;
+            ibus.read  = curr_type == READ;
+            ibus.inv   = curr_type == WRITE || curr_type == INV;
+            if (ibus.inv) ibus.inv_addr = npc;
+            if (curr_type == WRITE) begin
+                $display("read mem data(%08x): %08x", addr[req], m_mem_device.ram.mem[addr[req][ADDR_WIDTH - 1:$clog2(DATA_WIDTH / $bits(uint8_t))]]);
+                m_mem_device.ram.mem[addr[req][ADDR_WIDTH - 1:$clog2(DATA_WIDTH / $bits(uint8_t))]] = mux_be(
+                    m_mem_device.ram.mem[addr[req][ADDR_WIDTH - 1:$clog2(DATA_WIDTH / $bits(uint8_t))]],
+                    data[req],
+                    be[req]
+                );
+                $display("write mem data: %08x", m_mem_device.ram.mem[addr[req][ADDR_WIDTH - 1:$clog2(DATA_WIDTH / $bits(uint8_t))]]);
+            end
+            req = req + 1;
+        end
+    end
+
+    // show performence
+    begin
+        $display("[pass]");
+        $display("  Stall count: %d", stall_cnt);
+        $display("  Read count: %d", rd_cnt);
+    end
+
+    $display("[OK] %0s\n", name);
+    $sformat(summary, "%0s%0s: cycle = %d\n", summary, name, cycle);
+endtask
+
+task unittest(
+    input string name,
+    input integer n_req,
+    input integer with_be
+);
+    unittest_(name, n_req, with_be);
+endtask
 `endif
 
 initial begin
@@ -172,7 +311,20 @@ initial begin
     // unittest("random_flush");
     // unittest("sequ_rand_flush");
     `else
-    // TODO
+    // can only unittest one situation, for mem_device will hold mem during initial
+    // unittest("test_inv", 8, 1);
+    // unittest("mem_bitcount", 3800, 0);
+    // unittest("mem_bubble_sort", 61613, 0);
+    // unittest("mem_dc_coremark", 82967, 0);
+    // unittest("mem_quick_sort", 38517, 0);
+    // unittest("mem_select_sort", 21594, 0);
+    // unittest("mem_stream_copy", 39924, 0);
+    // unittest("mem_string_search", 33101, 0);
+    // unittest("random.2", 50000, 0);
+    // unittest("random.be", 50000, 1);
+    // unittest("random", 50000, 0);
+    // unittest("sequential", 32768, 0);
+    unittest("simple", 10, 0);
     `endif
     $display("summary: %0s", summary);
     $stop;
@@ -277,5 +429,85 @@ end
 //   sequential: cycle =        1628
 //   random:     cycle =        9769
 //   sequ_rand:  cycle =        2322
+
+// expr result(1-stage, TEST_ICACHE_COMMON_TESTCASES)
+// test_inv
+//   [pass]
+//     Stall count:           3
+//     Read  count:           3
+//   [OK] test_inv
+//   summary: test_inv:             cycle =         157
+// mem_bitcount
+//   [pass]
+//     Stall count:         767
+//     Read  count:         513
+//   [OK] mem_bitcount
+//   summary: mem_bitcount:         cycle =        7910
+// mem_bubble_sort
+//   [pass]
+//     Stall count:       13360
+//     Read  count:       13561
+//   [OK] mem_bubble_sort
+//   summary: mem_bubble_sort:      cycle =      166213
+// mem_dc_coremark
+//   [pass]
+//     Stall count:       22413
+//     Read  count:       16547
+//   [OK] mem_dc_coremark
+//   summary: mem_dc_coremark:      cycle =      211771
+// mem_quick_sort
+//   [pass]
+//     Stall count:       16949
+//     Read  count:       12247
+//   [OK] mem_quick_sort
+//   summary: mem_quick_sort:       cycle =      145818
+// mem_select_sort
+//   [pass]
+//     Stall count:        1003
+//     Read  count:         942
+//   [OK] mem_select_sort
+//   summary: mem_select_sort:      cycle =       26785
+// mem_stream_copy
+//   [pass]
+//     Stall count:        9214
+//     Read  count:        5658
+//   [OK] mem_stream_copy
+//   summary: mem_stream_copy:      cycle =       8317
+// mem_string_search
+//   [pass]
+//     Stall count:        8596
+//     Read  count:        4889
+//   [OK] mem_string_search
+//   summary: mem_string_search:    cycle =       71712
+// random.2
+//   [pass]
+//     Stall count:       22058
+//     Read  count:       17364
+//   [OK] random.2
+//   summary: random.2:             cycle =      207283
+// random.be
+//   [pass]
+//     Stall count:       22117
+//     Read  count:       17246
+//   [OK] random.be
+//   summary: random.be:            cycle =      205965
+// random
+//   [pass]
+//     Stall count:       22028
+//     Read  count:       17245
+//   [OK] random
+//   summary: random:               cycle =      206250
+// sequential
+//   [pass]
+//     Stall count:         513
+//     Read  count:         513
+//   [OK] sequential
+//   summary: sequential:           cycle =       32900
+// simple
+//   [pass]
+//     Stall count:           4
+//     Read  count:           4
+//   [OK] simple
+//   summary: simple:               cycle =         168
 
 endmodule
