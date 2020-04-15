@@ -1,0 +1,5 @@
+# file
+*.out
+
+# dir
+__pycache__
