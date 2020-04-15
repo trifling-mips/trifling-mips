@@ -2,7 +2,7 @@
 `define TEST_DCACHE_PASS_SVH
 
 /*
-	This header defines common constants in test_dcache_pass module
+    This header defines common constants in test_dcache_pass module
 */
 
 // testbench_defs
