@@ -9,7 +9,7 @@ def str2sint(src):
         for i in range(len(tar)):
             tar[i] = "0" if tar[i] == "1" else "1"
         # print(tar)
-        return int("".join(tar), 2) + 1
+        return -(int("".join(tar), 2) + 1)
     else:
         return int("".join(tar), 2)
 
