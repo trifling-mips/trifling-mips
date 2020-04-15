@@ -46,38 +46,35 @@ interface cpu_ibus_if();
 endinterface
 
 // interface for D$ and CPU
-// D$ is 3-stage pipelined
+// D$ is 1-stage
 typedef struct packed {
-    logic [$clog2(`N_RESV_LSU):0] lsu_idx;
-    phys_t addr;        // aligned in 4-bytes
+    virt_t vaddr;
+    phys_t paddr;        // aligned in 4-bytes
     // byteenable[i] corresponds to wrdata[(i + 1) * 8 - 1 : i * 8]
     logic [$bits(uint32_t) / $bits(uint8_t) - 1:0] be;
     uint32_t wrdata;
-    logic read, write, uncached;
-} lsu_req;
+    logic read, write, uncached, inv;
+} dcache_req;
 typedef struct packed {
-    logic [$clog2(`N_RESV_LSU):0] lsu_idx;
     uint32_t rddata;
-    logic rddata_vld;
-} lsu_resp;
+    logic valid;
+} dcache_resp;
 interface cpu_dbus_if();
     // control signals
     // for D$
-    logic stall, inv_dcache;
-    // for I$
-    logic inv_icache;
+    logic ready;
     // lsu_req
-    lsu_req lsu_req;
-    lsu_resp lsu_resp, lsu_uncached_resp;
+    dcache_req dcache_req1, dcache_req2;
+    dcache_resp dcache_resp1, dcache_resp2;
 
     modport master (
-        output inv_dcache, inv_icache, lsu_req,
-        input stall, lsu_resp, lsu_uncached_resp
+        output dcache_req1, dcache_req2,
+        input ready, dcache_resp1, dcache_resp2
     );
 
     modport slave (
-        input inv_dcache, inv_icache, lsu_req,
-        output stall, lsu_resp, lsu_uncached_resp
+        input dcache_req1, dcache_req2,
+        output ready, dcache_resp1, dcache_resp2
     );
 
 endinterface
