@@ -2,7 +2,7 @@
 `define DCACHE_PASS_SVH
 
 /*
-	This header defines common data structrue & constants in dcache_pass module
+    This header defines common data structrue & constants in dcache_pass module
 */
 
 // cache defs
@@ -14,12 +14,12 @@
 
 // data structrue
 typedef enum logic [2:0] {
-	DP_IDLE,
-	DP_WAIT_AWREADY,
-	DP_WRITE,
-	DP_WAIT_BVALID,
-	DP_WAIT_ARREADY,
-	DP_READ
+    DP_IDLE,
+    DP_WAIT_AWREADY,
+    DP_WRITE,
+    DP_WAIT_BVALID,
+    DP_WAIT_ARREADY,
+    DP_READ
 } dp_state_t;
 
 `endif
