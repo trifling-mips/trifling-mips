@@ -2,7 +2,7 @@
 `define TEST_DCACHE_SVH
 
 /*
-	This header defines common constants in test_dcache module
+    This header defines common constants in test_dcache module
 */
 
 // testbench_defs
@@ -14,11 +14,14 @@
 `define PATH_PREFIX "testbench/cache/testcases/"
 `DEF_FUNC_GET_PATH
 
+// select test target
+`define TEST_DCACHE_UNCACHED_REQ
+
 typedef enum logic [1:0] {
-	READ,
-	WRITE,
-	INV,
-	NOP
+    READ,
+    WRITE,
+    INV,
+    NOP
 } req_type_t;
 
 `endif
