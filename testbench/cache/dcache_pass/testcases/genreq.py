@@ -71,8 +71,9 @@ def gen_random_req(n_req = N_REQ):
                     f.write(fm % (rdata))
             else:
                 fm = "%s\n"
-                with open(ans_file, "a") as f:
-                    f.write(fm % (("%0" + str(DATA_WIDTH // 4) + "x") % 0))
+                # if store donot write ans
+                # with open(ans_file, "a") as f:
+                #     f.write(fm % (("%0" + str(DATA_WIDTH // 4) + "x") % 0))
                 wrdata(addr, wbe, wdata)
                 if random.randint(0, 1) == 1:
                     if index < n_req:

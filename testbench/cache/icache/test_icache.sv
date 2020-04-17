@@ -85,14 +85,14 @@ byte mode [N_REQ - 1:0];
 
 // record performence
 always_ff @ (posedge sync_rst or posedge ~ibus.ready) begin
-    if(sync_rst) begin
+    if (sync_rst) begin
         stall_cnt <= 0;
     end else begin
         stall_cnt <= stall_cnt + 1;
     end
 end
 always_ff @ (posedge sync_rst or posedge axi3_rd_if.axi3_rd_req.arvalid) begin
-    if(sync_rst) begin
+    if (sync_rst) begin
         rd_cnt <= 0;
     end else begin
         rd_cnt <= rd_cnt + 1;
@@ -207,7 +207,7 @@ task unittest_(
     // load sim status
     begin
         fdat = $fopen({fdat_path}, "r");
-        for(int i = 0; i < n_req; i++) begin
+        for (int i = 0; i < n_req; i++) begin
             if (with_be == 1)
                 $fscanf(fdat, "%c %h %h %h\n", mode[i], addr[i], data[i], be[i]);
             else begin
@@ -252,7 +252,7 @@ task unittest_(
         // check req - 1(only read)
         if (ibus.valid) begin
             $display("[%0d] req = %0d, data = %08x", cycle, req - 1, ibus.rddata);
-            if(req_type[req - 1] == READ && ~(ibus.rddata === data[req - 1])) begin
+            if (req_type[req - 1] == READ && ~(ibus.rddata === data[req - 1])) begin
                 $display("[Error] expected = %08x", data[req - 1]);
                 $stop;
             end

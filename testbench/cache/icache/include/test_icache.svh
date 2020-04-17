@@ -2,7 +2,7 @@
 `define TEST_ICACHE_SVH
 
 /*
-	This header defines common constants & funcs in test_icache module
+    This header defines common constants & funcs in test_icache module
 */
 
 // testbench_defs
@@ -23,28 +23,28 @@
 
 // struct
 typedef enum logic [1:0] {
-	READ,
-	WRITE,
-	INV,
-	NOP
+    READ,
+    WRITE,
+    INV,
+    NOP
 } req_type_t;
 
 // funcs
 `define DEF_FUNC_MUX_BE function logic [DATA_WIDTH - 1:0] mux_be( \
-	input logic [DATA_WIDTH - 1:0] rdata, \
-	input logic [DATA_WIDTH - 1:0] wdata, \
-	input logic [(DATA_WIDTH / $bits(uint8_t)) - 1:0] sel \
+    input logic [DATA_WIDTH - 1:0] rdata, \
+    input logic [DATA_WIDTH - 1:0] wdata, \
+    input logic [(DATA_WIDTH / $bits(uint8_t)) - 1:0] sel \
 ); \
-	uint8_t [(DATA_WIDTH / $bits(uint8_t)) - 1:0] r_data, w_data, mux_data; \
+    uint8_t [(DATA_WIDTH / $bits(uint8_t)) - 1:0] r_data, w_data, mux_data; \
  \
-	// reshape \
-	assign r_data = rdata; \
-	assign w_data = wdata; \
-	// select \
-	for (integer i = 0; i < (DATA_WIDTH / $bits(uint8_t)); i++) \
-		mux_data[i] = sel[i] ? w_data[i] : r_data[i]; \
+    // reshape \
+    assign r_data = rdata; \
+    assign w_data = wdata; \
+    // select \
+    for (integer i = 0; i < (DATA_WIDTH / $bits(uint8_t)); i++) \
+        mux_data[i] = sel[i] ? w_data[i] : r_data[i]; \
  \
-	return mux_data; \
+    return mux_data; \
  \
 endfunction
 

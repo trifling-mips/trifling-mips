@@ -2,7 +2,7 @@
 `define TEST_REPL_SVH
 
 /*
-	This header defines common constants in test_repl module
+    This header defines common constants in test_repl module
 */
 
 // testbench_defs

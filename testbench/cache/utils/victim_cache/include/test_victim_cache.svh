@@ -2,7 +2,7 @@
 `define TEST_VICTIM_CACHE_SVH
 
 /*
-	This header defines common constants in test_vc module
+    This header defines common constants in test_vc module
 */
 
 // testbench_defs
