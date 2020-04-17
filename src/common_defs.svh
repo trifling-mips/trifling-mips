@@ -64,17 +64,17 @@ interface cpu_dbus_if();
     // for D$
     logic ready;
     // lsu_req
-    dcache_req dcache_req1, dcache_req2;
-    dcache_resp dcache_resp1, dcache_resp2;
+    dcache_req dcache_req;
+    dcache_resp dcache_resp;
 
     modport master (
-        output dcache_req1, dcache_req2,
-        input ready, dcache_resp1, dcache_resp2
+        output dcache_req,
+        input ready, dcache_resp
     );
 
     modport slave (
-        input dcache_req1, dcache_req2,
-        output ready, dcache_resp1, dcache_resp2
+        input dcache_req,
+        output ready, dcache_resp
     );
 
 endinterface

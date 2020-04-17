@@ -52,7 +52,7 @@ line_t pipe0_sb_line;
 logic pipe0_sb_label_o_vld, pipe0_sb_written, pipe0_sb_was_hit;
 logic [(LINE_WIDTH / DATA_WIDTH) - 1:0] pipe0_sb_line_vld;
 // stage 1(tag we & data we)
-logic stage1_tag_whit;
+logic [SET_ASSOC-1:0] stage1_tag_whit, stage1_data_whit;
 logic [SET_ASSOC-1:0] stage1_tag_we, stage1_data_we;
 index_t stage1_tag_waddr, stage1_data_waddr;
 tag_t stage1_tag_wrdata;
@@ -107,9 +107,9 @@ for(genvar i = 0; i < SET_ASSOC; ++i) begin : gen_icache_hit_rd
     assign stage1_hit_rd[i] = pipe0_tag_rddata1[i].valid & (get_tag(ibus.paddr) == pipe0_tag_rddata1[i].tag);
 end
 // hit from tag_wrdata
-assign stage1_tag_whit      = (get_tag(ibus.paddr) == pipe1_tag_wrdata.tag) & (get_index(ibus.paddr) == pipe1_tag_waddr);
-assign stage1_hit_fr        = pipe1_tag_we & {SET_ASSOC{(pipe1_tag_wrdata.valid & stage1_tag_whit)}};
-assign stage1_hit           = stage1_tag_whit ? stage1_hit_fr : stage1_hit_rd;
+assign stage1_tag_whit      = pipe1_tag_we & {SET_ASSOC{(get_tag(ibus.paddr) == pipe1_tag_wrdata.tag) & (get_index(ibus.paddr) == pipe1_tag_waddr)}};
+assign stage1_hit_fr        = {SET_ASSOC{pipe1_tag_wrdata.valid}} & stage1_tag_whit;
+assign stage1_hit           = |stage1_tag_whit ? stage1_hit_fr : stage1_hit_rd;
 assign stage1_cache_miss    = ~(|stage1_hit) & pipe0_read;
 assign stage1_prefetch_hit  = (pipe0_sb_label_o == get_label(ibus.paddr) && pipe0_sb_label_o_vld) & pipe0_read;
 // next line
@@ -171,7 +171,7 @@ end
 assign stage1_data_whit = stage1_tag_whit;
 always_comb begin
     stage1_data_mux = stage1_data_ram;
-    if (stage1_data_whit) stage1_data_mux = pipe1_data_wrdata;
+    if (|stage1_data_whit) stage1_data_mux = pipe1_data_wrdata;
     if (stage1_cache_miss && stage1_prefetch_hit) stage1_data_mux = stage1_data_wrdata;
 end
 // prefetch signals

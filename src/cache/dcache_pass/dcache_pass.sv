@@ -165,7 +165,7 @@ end else begin
             DP_WAIT_BVALID:
                 if (axi3_wr_if.axi3_wr_resp.bvalid) begin
                     // should not set valid as 1, for store commit after issue
-                    dcache_uncached_resp.valid = 1'b1;
+                    // no resp for store req
                 end
             // load complete
             DP_READ:

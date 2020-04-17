@@ -2,7 +2,7 @@
 `define REPL_DEFS_SVH
 
 /*
-	This header defines common data structrue & constants in repl module
+    This header defines common data structrue & constants in repl module
 */
 
 // cache defs

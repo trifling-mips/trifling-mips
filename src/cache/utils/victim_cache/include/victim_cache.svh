@@ -2,7 +2,7 @@
 `define VICTIM_CACHE_SVH
 
 /*
-	This header defines common data structrue & constants in victim_cache module
+    This header defines common data structrue & constants in victim_cache module
 */
 
 // cache defs
