@@ -26,8 +26,9 @@ module inst_fetch #(
     hand_shake_if.master    hand_shake_ifid
 );
 
-logic ready;
-assign ready = ibus_ready & hand_shake_ifid.ready;
+logic ready, pipe_flush;
+assign pipe_flush = except_req.valid | resolved_branch.taken;
+assign ready = (ibus_ready & hand_shake_ifid.ready) | pipe_flush;
 // inst pc_generator
 pc_generator #(
     .BOOT_VEC(BOOT_VEC),
@@ -36,17 +37,15 @@ pc_generator #(
     .*
 );
 
-logic pipe_flush;
-assign pipe_flush = except_req.valid | resolved_branch.taken;
 // pipe if
 always_ff @ (posedge clk) begin
-    if (rst) begin
+    if (rst | pipe_flush) begin
         pipe_if               <= '0;
         hand_shake_ifid.valid <= 1'b0;
     end else if (hand_shake_ifid.ready) begin
         pipe_if.vaddr         <= pc;
         pipe_if.inst          <= ibus_rddata;
-        hand_shake_ifid.valid <= ibus_valid & ~pipe_flush;
+        hand_shake_ifid.valid <= ibus_valid;
     end
 end
 
