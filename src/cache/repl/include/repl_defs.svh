@@ -9,6 +9,6 @@
 `include "cache_defs.svh"
 
 // enable sim
-`define REPL_SIM
+// `define REPL_SIM
 
 `endif
