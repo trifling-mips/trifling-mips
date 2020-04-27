@@ -9,12 +9,25 @@ module inst_fetch #(
     input   logic   clk,
     input   logic   rst,
     // ready from icache
-    input   logic   ready,
+    input   logic   ibus_ready,
+    // branch resolved
+    input   branch_resolved_t   resolved_branch,
+    // except req
+    input   except_req_t        except_req,
     // output
     output  virt_t  pc,
-    output  virt_t  npc     // for icache fetch
+    output  virt_t  npc,    // for icache fetch
+    // icache resp
+    input   logic       ibus_valid,
+    input   uint32_t    ibus_rddata,
+    // inst_fetch pipe
+    output  pipe_if_t   pipe_if,
+    // hand_shake if
+    hand_shake_if.master    hand_shake_ifid
 );
 
+logic ready;
+assign ready = ibus_ready & hand_shake_ifid.ready;
 // inst pc_generator
 pc_generator #(
     .BOOT_VEC(BOOT_VEC),
@@ -22,6 +35,20 @@ pc_generator #(
 ) pc_generator_inst (
     .*
 );
+
+logic pipe_flush;
+assign pipe_flush = except_req.valid | resolved_branch.taken;
+// pipe if
+always_ff @ (posedge clk) begin
+    if (rst) begin
+        pipe_if               <= '0;
+        hand_shake_ifid.valid <= 1'b0;
+    end else if (hand_shake_ifid.ready) begin
+        pipe_if.vaddr         <= pc;
+        pipe_if.inst          <= ibus_rddata;
+        hand_shake_ifid.valid <= ibus_valid & ~pipe_flush;
+    end
+end
 
 // inst bpu
 // TODO
