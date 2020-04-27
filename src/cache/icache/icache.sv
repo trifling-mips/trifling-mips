@@ -2,19 +2,19 @@
 `include "icache.svh"
 
 module icache #(
-    parameter    DATA_WIDTH     =   32,     // single issue
-    parameter    LINE_WIDTH     =   256,
-    parameter    SET_ASSOC      =   4,
-    parameter    CACHE_SIZE     =   16 * 1024 * 8,
-    parameter    ARID           =   0
+    parameter   DATA_WIDTH      =   32,     // single issue
+    parameter   LINE_WIDTH      =   256,
+    parameter   SET_ASSOC       =   4,
+    parameter   CACHE_SIZE      =   16 * 1024 * 8,
+    parameter   ARID            =   0
 ) (
     // external signals
-    input    logic    clk,
-    input    logic    rst,
+    input   logic   clk,
+    input   logic   rst,
     // CPU signals
-    cpu_ibus_if.slave    ibus,
+    cpu_ibus_if.slave   ibus,
     // AXI3 signals
-    axi3_rd_if.master    axi3_rd_if
+    axi3_rd_if.master   axi3_rd_if
 );
 
 localparam int unsigned LINE_NUM    = CACHE_SIZE / LINE_WIDTH;

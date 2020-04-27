@@ -164,8 +164,8 @@ end
 assign stage1_tag_whit = pipe1_tag_we & {SET_ASSOC{(get_index(dbus.dcache_req.paddr) == pipe1_tag_waddr) & (get_tag(dbus.dcache_req.paddr) == pipe1_tag_wrdata.tag)}};
 assign stage1_hit_fr   = {SET_ASSOC{pipe1_tag_wrdata.valid}} & stage1_tag_whit;
 assign stage1_hit      = |stage1_tag_whit ? stage1_hit_fr : stage1_hit_rd;
-assign stage1_cache_miss = ~(|stage1_hit) & ((pipe0_req.read | pipe0_req.write) & ~pipe0_req.uncached);
-assign stage1_prefetch_hit = (pipe0_sb_label_o == get_label(dbus.dcache_req.paddr) & pipe0_sb_label_o_vld) & ((pipe0_req.read | pipe0_req.write) & ~pipe0_req.uncached);
+assign stage1_cache_miss = ~(|stage1_hit) & ((pipe0_req.read | pipe0_req.write) & ~dbus.dcache_req.uncached);
+assign stage1_prefetch_hit = (pipe0_sb_label_o == get_label(dbus.dcache_req.paddr) & pipe0_sb_label_o_vld) & ((pipe0_req.read | pipe0_req.write) & ~dbus.dcache_req.uncached);
 // no prefetch
 // repl
 assign stage1_repl_index_waddr = pipe0_repl_index[get_index(pipe0_req.vaddr)];
@@ -201,9 +201,9 @@ always_comb begin
             // found in wb on pop / found on wb
             if (stage1_cache_miss && (stage1_wb_query_found_wb || stage1_wb_query_on_pop)) stage1_state_n = DCACHE_WAIT_WB;
             // uncached load req
-            if (pipe0_req.uncached && pipe0_req.read) stage1_state_n = DCACHE_UNCACHED_LOAD;
+            if (dbus.dcache_req.uncached && pipe0_req.read) stage1_state_n = DCACHE_UNCACHED_LOAD;
             // uncached req && dp is full
-            if (pipe0_req.uncached && (stage1_dp_push && pipe0_dp_full)) stage1_state_n = DCACHE_WAIT_UNCACHED;
+            if (dbus.dcache_req.uncached && (stage1_dp_push && pipe0_dp_full)) stage1_state_n = DCACHE_WAIT_UNCACHED;
             // inv dcache
             if (pipe0_req.inv) stage1_state_n = DCACHE_INVALIDATING;
         end
@@ -261,7 +261,7 @@ always_comb begin
     stage1_dp_req.paddr = dbus.dcache_req.paddr;
 end
 // when waiting uncached load to execute, cannot issue push
-assign stage1_dp_push = (pipe0_req.read | pipe0_req.write) & pipe0_req.uncached & (stage1_state != DCACHE_UNCACHED_LOAD);
+assign stage1_dp_push = (pipe0_req.read | pipe0_req.write) & dbus.dcache_req.uncached & (stage1_state != DCACHE_UNCACHED_LOAD);
 // ram req for tag
 assign stage1_tag_wrdata.dirty = pipe0_req.write;
 assign stage1_tag_wrdata.valid = (stage1_state != DCACHE_INVALIDATING) && (stage1_state != DCACHE_RESET);
@@ -282,7 +282,7 @@ always_comb begin
             // should cause fetch / prefetch_load / wait_wb, maybe need wb
             // ~stage2_inv_rtag1 avoid wtag because of right after fetch, old rtag looks non_hit, but new will hit
             // cannot push now, for pipe2_data_rdata is not valid
-            if (stage1_cache_miss && ~(stage1_wb_query_found && ~stage1_wb_query_on_pop) && ~pipe0_req.uncached && ~pipe0_req.inv) begin
+            if (stage1_cache_miss && ~(stage1_wb_query_found && ~stage1_wb_query_on_pop) && ~dbus.dcache_req.uncached && ~pipe0_req.inv) begin
                 // if last period write tag, for we use lut store tag, do matter, pipe1_tag_rdata1 is not updated, use stage2_tag_mux
                 stage1_need_push_n  = stage1_tag_mux[stage1_assoc_waddr].valid && stage1_tag_mux[stage1_assoc_waddr].dirty;
                 stage1_tag_rddata_n = stage1_tag_mux;
@@ -441,7 +441,7 @@ always_comb begin
     if (~|stage1_hit && stage1_wb_write) begin
         pipe1_req_n.write = 1'b0;
     end
-    if (pipe0_req.uncached) begin
+    if (dbus.dcache_req.uncached) begin
         pipe1_req_n.read  = 1'b0;
         pipe1_req_n.write = 1'b0;
     end
@@ -479,7 +479,7 @@ assign stage1_resp.valid  = dbus.ready & pipe0_req.read;
 // dbus control signals
 assign dbus.ready = stage1_state_n == DCACHE_IDLE;
 // dbus resp signals
-assign dbus.dcache_resp = pipe0_req.uncached ? stage1_dp_resp : stage1_resp;
+assign dbus.dcache_resp = dbus.dcache_req.uncached ? stage1_dp_resp : stage1_resp;
 
 // stage 1 stream_buffer for cache_prefetch
 // for data_vld will delay one period, maybe try to modify it.
