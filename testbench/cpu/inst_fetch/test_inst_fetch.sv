@@ -184,6 +184,10 @@ initial begin
     wait(rst == 1'b0);
     summary = "";
     unittest("sequential");
+    unittest("stall");
+    unittest("branch");
+    unittest("except");
+    unittest("all");
     $display("summary: %0s", summary);
     $stop;
 end
