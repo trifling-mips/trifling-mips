@@ -64,12 +64,19 @@ always_comb begin
     decoder_resp.is_load    = 1'b0;
     decoder_resp.is_store   = 1'b0;
     decoder_resp.is_controlflow = is_branch | is_jump_i | is_jump_r;
+    decoder_resp.is_multicyc    = 1'b0;
+    decoder_resp.be         = '0;
 
     unique casez(opcode)
         6'b000000: begin    // SPECIAL (Reg-Reg)
             decoder_resp.rs1 = rs;
             decoder_resp.rs2 = rt;
             decoder_resp.rd  = rd;
+            unique casez(funct)
+                6'b0110??: decoder_resp.is_multicyc = 1'b1;
+                6'b0100?1: decoder_resp.is_multicyc = 1'b1;
+                default:   decoder_resp.is_multicyc = 1'b0;
+            endcase
             unique case(funct)
                 /* shift */
                 6'b000000: decoder_resp.op = OP_SLL;
@@ -141,6 +148,11 @@ always_comb begin
             decoder_resp.rs1 = rs;
             decoder_resp.rs2 = rt;
             decoder_resp.rd  = rd;
+            unique casez(funct)
+                6'b000?0?, 6'b000010:
+                    decoder_resp.is_multicyc = 1'b1;
+                default: decoder_resp.is_multicyc = 1'b0;
+            endcase
             unique case(funct)
                 6'b000000: decoder_resp.op = OP_MADD;
                 6'b000001: decoder_resp.op = OP_MADDU;
@@ -211,14 +223,29 @@ always_comb begin
             decoder_resp.rd      = rt;
             decoder_resp.is_load = 1'b1;
             unique case(opcode[2:0])
-                3'b000: decoder_resp.op = OP_LB;
-                3'b001: decoder_resp.op = OP_LH;
+                3'b000: begin
+                    decoder_resp.op = OP_LB;
+                    decoder_resp.be = 4'b0001;
+                end
+                3'b001: begin
+                    decoder_resp.op = OP_LH;
+                    decoder_resp.be = 4'b0011;
+                end
                 `ifdef COMPILE_FULL_M
                 3'b010: decoder_resp.op = OP_LWL;
                 `endif
-                3'b011: decoder_resp.op = OP_LW;
-                3'b100: decoder_resp.op = OP_LBU;
-                3'b101: decoder_resp.op = OP_LHU;
+                3'b011:begin
+                    decoder_resp.op = OP_LW;
+                    decoder_resp.be = 4'b1111;
+                end
+                3'b100: begin
+                    decoder_resp.op = OP_LBU;
+                    decoder_resp.be = 4'b0001;
+                end
+                3'b101: begin
+                    decoder_resp.op = OP_LHU;
+                    decoder_resp.be = 4'b0011;
+                end
                 `ifdef COMPILE_FULL_M
                 3'b110: decoder_resp.op = OP_LWR;
                 `endif
@@ -231,12 +258,21 @@ always_comb begin
             decoder_resp.rs2      = rt;
             decoder_resp.is_store = 1'b1;
             unique case(opcode[2:0])
-                3'b000:  decoder_resp.op = OP_SB;
-                3'b001:  decoder_resp.op = OP_SH;
+                3'b000:  begin
+                    decoder_resp.op = OP_SB;
+                    decoder_resp.be = 4'b0001;
+                end
+                3'b001:  begin
+                    decoder_resp.op = OP_SH;
+                    decoder_resp.be = 4'b0011;
+                end
                 `ifdef COMPILE_FULL_M
                 3'b010:  decoder_resp.op = OP_SWL;
                 `endif
-                3'b011:  decoder_resp.op = OP_SW;
+                3'b011:  begin
+                    decoder_resp.op = OP_SW;
+                    decoder_resp.be = 4'b1111;
+                end
                 `ifdef COMPILE_FULL_M
                 3'b110:  decoder_resp.op = OP_SWR;
                 3'b111:  decoder_resp.op = OP_CACHE;
