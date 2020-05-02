@@ -27,6 +27,8 @@
 `define N_TLB_ENTRIES   32
 // num of regs in rf
 `define N_REG           32
+`define REG_READ_PORT   2
+`define REG_WRITE_PORT  1
 // whether enable victim cache in write_buffer
 `define VICTIM_CACHE_ENABLED    1
 // cache parameter

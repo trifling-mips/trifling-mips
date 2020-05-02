@@ -54,18 +54,18 @@ typedef struct packed {
     logic [$bits(uint32_t) / $bits(uint8_t) - 1:0] be;
     uint32_t wrdata;
     logic read, write, uncached, inv;
-} dcache_req;
+} dcache_req_t;
 typedef struct packed {
     uint32_t rddata;
     logic valid;
-} dcache_resp;
+} dcache_resp_t;
 interface cpu_dbus_if();
     // control signals
     // for D$
     logic ready;
     // lsu_req
-    dcache_req dcache_req;
-    dcache_resp dcache_resp;
+    dcache_req_t dcache_req;
+    dcache_resp_t dcache_resp;
 
     modport master (
         output dcache_req,
@@ -179,5 +179,13 @@ interface axi3_wr_if #(
     );
 
 endinterface
+
+// debug_req
+typedef struct packed {
+    virt_t vaddr;
+    uint32_t regs_wrdata;
+    logic [$bits(uint32_t)/$bits(uint8_t)-1:0] regs_wbe;
+    reg_addr_t regs_waddr;
+} debug_req_t;
 
 `endif
