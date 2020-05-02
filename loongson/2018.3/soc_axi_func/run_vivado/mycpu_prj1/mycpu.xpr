@@ -29,20 +29,20 @@
     <Option Name="EnableBDX" Val="FALSE"/>
     <Option Name="DSAVendor" Val="xilinx"/>
     <Option Name="DSANumComputeUnits" Val="16"/>
-    <Option Name="WTXSimLaunchSim" Val="167"/>
+    <Option Name="WTXSimLaunchSim" Val="199"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="71"/>
-    <Option Name="WTModelSimExportSim" Val="71"/>
-    <Option Name="WTQuestaExportSim" Val="71"/>
-    <Option Name="WTIesExportSim" Val="71"/>
-    <Option Name="WTVcsExportSim" Val="71"/>
-    <Option Name="WTRivieraExportSim" Val="71"/>
-    <Option Name="WTActivehdlExportSim" Val="71"/>
+    <Option Name="WTXSimExportSim" Val="75"/>
+    <Option Name="WTModelSimExportSim" Val="75"/>
+    <Option Name="WTQuestaExportSim" Val="75"/>
+    <Option Name="WTIesExportSim" Val="75"/>
+    <Option Name="WTVcsExportSim" Val="75"/>
+    <Option Name="WTRivieraExportSim" Val="75"/>
+    <Option Name="WTActivehdlExportSim" Val="75"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -640,9 +640,7 @@
     </Run>
     <Run Id="cpu_internal_crossbar_synth_1" Type="Ft3:Synth" SrcSet="cpu_internal_crossbar" Part="xc7a200tfbg676-2" ConstrsSet="cpu_internal_crossbar" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/cpu_internal_crossbar_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2018">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2018"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -731,9 +729,7 @@
     </Run>
     <Run Id="cpu_internal_crossbar_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-2" ConstrsSet="cpu_internal_crossbar" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="cpu_internal_crossbar_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2018">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2018"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>

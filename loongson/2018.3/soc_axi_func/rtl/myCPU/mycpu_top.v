@@ -1,53 +1,53 @@
 `default_nettype none
 
 module mycpu_top #(
-	parameter BUS_WIDTH = 4
+    parameter BUS_WIDTH = 4
 ) (
     // external signals
     input  wire        aclk   ,
     input  wire        aresetn,
     input  wire [6 :0] int    ,
 
-	// AXI AR signals
-	output wire [BUS_WIDTH - 1 :0] arid   ,
-	output wire [31:0]             araddr ,
-	output wire [3 :0]             arlen  ,
-	output wire [2 :0]             arsize ,
-	output wire [1 :0]             arburst,
-	output wire [1 :0]             arlock ,
-	output wire [3 :0]             arcache,
-	output wire [2 :0]             arprot ,
-	output wire                    arvalid,
-	input  wire                    arready,
-	// AXI R signals
-	input  wire [BUS_WIDTH - 1 :0] rid    ,
-	input  wire [31:0]             rdata  ,
-	input  wire [1 :0]             rresp  ,
-	input  wire                    rlast  ,
-	input  wire                    rvalid ,
-	output wire                    rready ,
-	// AXI AW signals
-	output wire [BUS_WIDTH - 1 :0] awid   ,
-	output wire [31:0]             awaddr ,
-	output wire [3 :0]             awlen  ,
-	output wire [2 :0]             awsize ,
-	output wire [1 :0]             awburst,
-	output wire [1 :0]             awlock ,
-	output wire [3 :0]             awcache,
-	output wire [2 :0]             awprot ,
-	output wire                    awvalid,
-	input  wire                    awready,
-	// AXI W signals
-	output wire [BUS_WIDTH - 1 :0] wid    ,
-	output wire [31:0]             wdata  ,
-	output wire [3 :0]             wstrb  ,
-	output wire                    wlast  ,
-	output wire                    wvalid ,
-	input  wire                    wready ,
-	// AXI B signals
-	input  wire [BUS_WIDTH - 1 :0] bid    ,
-	input  wire [1 :0]             bresp  ,
-	input  wire                    bvalid ,
+    // AXI AR signals
+    output wire [BUS_WIDTH - 1 :0] arid   ,
+    output wire [31:0]             araddr ,
+    output wire [3 :0]             arlen  ,
+    output wire [2 :0]             arsize ,
+    output wire [1 :0]             arburst,
+    output wire [1 :0]             arlock ,
+    output wire [3 :0]             arcache,
+    output wire [2 :0]             arprot ,
+    output wire                    arvalid,
+    input  wire                    arready,
+    // AXI R signals
+    input  wire [BUS_WIDTH - 1 :0] rid    ,
+    input  wire [31:0]             rdata  ,
+    input  wire [1 :0]             rresp  ,
+    input  wire                    rlast  ,
+    input  wire                    rvalid ,
+    output wire                    rready ,
+    // AXI AW signals
+    output wire [BUS_WIDTH - 1 :0] awid   ,
+    output wire [31:0]             awaddr ,
+    output wire [3 :0]             awlen  ,
+    output wire [2 :0]             awsize ,
+    output wire [1 :0]             awburst,
+    output wire [1 :0]             awlock ,
+    output wire [3 :0]             awcache,
+    output wire [2 :0]             awprot ,
+    output wire                    awvalid,
+    input  wire                    awready,
+    // AXI W signals
+    output wire [BUS_WIDTH - 1 :0] wid    ,
+    output wire [31:0]             wdata  ,
+    output wire [3 :0]             wstrb  ,
+    output wire                    wlast  ,
+    output wire                    wvalid ,
+    input  wire                    wready ,
+    // AXI B signals
+    input  wire [BUS_WIDTH - 1 :0] bid    ,
+    input  wire [1 :0]             bresp  ,
+    input  wire                    bvalid ,
     output wire                    bready ,
     
     // debug signals
@@ -172,7 +172,7 @@ module mycpu_top #(
     ) trifling_mips_inst (
         .aclk            (aclk            ),
         .rst_n           (aresetn         ),
-        .intr            (int[0 +: 5]     ),
+        .interrupt       (int[0 +: 5]     ),
         .icache_arid     (icache_arid     ),
         .icache_araddr   (icache_araddr   ),
         .icache_arlen    (icache_arlen    ),
