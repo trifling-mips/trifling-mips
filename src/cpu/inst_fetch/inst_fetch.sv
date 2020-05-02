@@ -51,9 +51,9 @@ always_ff @ (posedge clk) begin
         pipe_if       <= '0;
     end else if (ready_i) begin
         pipe_if.vaddr <= pc;
-        pipe_if.inst  <= ibus_rddata;
+        pipe_if.inst  <= ibus_rddata & {$bits(uint32_t){ibus_valid}};
         pipe_if.valid <= ibus_valid;
-        pipe_if.iaddr_ex <= address_exception;
+        pipe_if.iaddr_ex <= address_exception & {$bits(address_exception_t){ibus_valid}};
     end
 end
 

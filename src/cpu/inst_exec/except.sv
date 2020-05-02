@@ -8,6 +8,7 @@ module except #(
     input   logic   rst,
     // exception (not sync)
     input   pipe_id_t[N_ISSUE-1:0]      pipe_id,
+    input   pipe_ex_t[N_ISSUE-1:0]      pipe_ex,
     // cp0 regs & interrupt_req
     input  cp0_regs_t   cp0_regs,
     input  logic [7:0]  interrupt_req,
@@ -29,30 +30,30 @@ assign interrupt_occur = (
     && interrupt_req != 8'b0
     && pipe_id_valid_concat
     `ifdef FPU_ENABLED
-    && ~(pipe_id[0].ex.op == OP_LDC1B || pipe_id[0].ex.op == OP_SDC1B)
+    && ~(pipe_ex[0].exception.op == OP_LDC1B || pipe_ex[0].exception.op == OP_SDC1B)
     `endif
 );
 
 logic tlb_refill;
 `ifdef COMPILE_FULL_M
-assign tlb_refill = pipe_id[0].ex.valid ? pipe_id[0].ex.tlb_refill : pipe_id[1].ex.tlb_refill;
+assign tlb_refill = pipe_ex[0].exception.valid ? pipe_ex[0].exception.tlb_refill : pipe_ex[1].exception.tlb_refill;
 `else
 assign tlb_refill = 1'b0;
 `endif
-assign except_req.eret = pipe_id[0].ex.eret;
+assign except_req.eret = pipe_ex[0].exception.eret;
 always_comb begin
     if (interrupt_occur) begin
         except_req.valid = 1'b1;
         except_req.code  = EXCCODE_INT;
         except_req.extra = '0;
-        except_req.pc    = pipe_id[0].ex.pc;
+        except_req.pc    = pipe_ex[0].exception.pc;
         except_req.delayslot   = 1'b0;
     end else begin
-        except_req.valid = pipe_id[0].ex.valid | except_req.eret;
-        except_req.code  = pipe_id[0].ex.exc_code;
-        except_req.extra = pipe_id[0].ex.extra;
-        except_req.pc    = pipe_id[0].ex.pc;
-        except_req.delayslot   = pipe_id[0].ex.delayslot;
+        except_req.valid = pipe_ex[0].exception.valid | except_req.eret;
+        except_req.code  = pipe_ex[0].exception.exc_code;
+        except_req.extra = pipe_ex[0].exception.extra;
+        except_req.pc    = pipe_ex[0].exception.pc;
+        except_req.delayslot   = pipe_ex[0].exception.delayslot;
     end
 
     except_req.valid &= ~rst;

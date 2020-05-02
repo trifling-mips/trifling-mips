@@ -26,7 +26,7 @@ module cpu_core #(
     cpu_ibus_if.master  ibus,
     cpu_dbus_if.master  dbus,
     // debug req
-    debug_req_t debug_req
+    output  debug_req_t debug_req
 );
 
 // define interface for inst_fetch
@@ -40,7 +40,7 @@ pipe_if_t if_pipe_if;
 // define interface for inst_decode
 logic id_ready_i, id_ready_o, id_pipe_if_flush;
 pipe_if_t id_pipe_if;
-pipe_id_t id_pipe_id;
+pipe_id_t id_pipe_id, id_pipe_id_n;
 pipe_ex_t id_pipe_ex;
 // define interface for mmu
 logic[7:0] mmu_asid;
@@ -53,7 +53,7 @@ mmu_resp_t[N_ISSUE - 1:0] mmu_data_resp;
 tlb_index_t mmu_tlbrw_index;
 logic mmu_tlbrw_we;
 tlb_entry_t mmu_tlbrw_wrdata;
-tlb_entry_t mmu_w_rddata;
+tlb_entry_t mmu_tlbrw_rddata;
 uint32_t mmu_tlbp_entry_hi, mmu_tlbp_index;
 // define interface for cp0
 cp0_rreq_t cp0_cp0_rreq;
@@ -73,6 +73,7 @@ logic cp0_tlbwr_req;
 tlb_entry_t cp0_tlbrw_wrdata;
 // define interface for except
 pipe_id_t[N_ISSUE-1:0] except_pipe_id;
+pipe_ex_t[N_ISSUE-1:0] except_pipe_ex;
 cp0_regs_t except_cp0_regs;
 logic[7:0] except_interrupt_req;
 except_req_t except_except_req;
@@ -129,7 +130,7 @@ assign if_ibus_ready    = ibus.ready;
 assign if_ibus_valid    = ibus.valid;
 assign if_ibus_rddata   = ibus.rddata;
 assign if_ready_i       = id_ready_o;
-assign if_resolved_branch   = ex_pipe_ex.resolved_branch;
+assign if_resolved_branch   = ex_pipe_ex_n.resolved_branch;
 assign if_except_req    = except_except_req;
 assign if_mmu_iaddr_resp= mmu_inst_resp[0];
 
@@ -150,6 +151,7 @@ inst_decode #(
     .pipe_if        (id_pipe_if         ),
     .pipe_if_flush  (id_pipe_if_flush   ),
     // pipe_id
+    .pipe_id_n      (id_pipe_id_n       ),
     .pipe_id        (id_pipe_id         ),
     // pipe_ex (not sync)
     .pipe_ex        (id_pipe_ex         )
@@ -249,12 +251,18 @@ except #(
     .rst,
     // exception (not sync)
     .pipe_id        (except_pipe_id         ),
+    .pipe_ex        (except_pipe_ex         ),
     // cp0 regs & interrupt_req
     .cp0_regs       (except_cp0_regs        ),
     .interrupt_req  (except_interrupt_req   ),
     // except_req
     .except_req     (except_except_req      )
 );
+assign except_pipe_id       = id_pipe_id;
+assign except_pipe_ex[0]    = ex_pipe_ex_n;
+// need to be modified
+for (genvar i = 1; i < N_ISSUE; ++i)
+    assign except_pipe_ex[i]  = '0;
 assign except_cp0_regs      = cp0_cp0_regs;
 assign except_interrupt_req = interrupt_req;
 

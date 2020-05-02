@@ -34,9 +34,9 @@ regs_wreq_t[WRITE_PORTS-1:0] regs_wreq;
 reg_addr_t[READ_PORTS-1:0] regs_raddr;
 uint32_t[READ_PORTS-1:0] regs_rddata;
 // define interface for regs_forward
-reg_addr_t[READ_PORT-1:0] regs_raddr_i;
-uint32_t[READ_PORT-1:0] regs_rddata_i;
-uint32_t[READ_PORT-1:0] regs_rddata_o;
+reg_addr_t[READ_PORTS-1:0] regs_raddr_i;
+uint32_t[READ_PORTS-1:0] regs_rddata_i;
+uint32_t[READ_PORTS-1:0] regs_rddata_o;
 // define interface for resolve_delayslot
 pipe_id_t[N_ISSUE - 1:0] rd_pipe_id;
 logic[N_ISSUE - 1:0] rd_resolved_delayslot;
@@ -72,8 +72,8 @@ assign regs_wreq     = pipe_ex.regs_wreq;
 
 // regs_forward
 regs_forward #(
-    .READ_PORT(READ_PORT),
-    .WRITE_PORT(WRITE_PORT)
+    .READ_PORTS(READ_PORTS),
+    .WRITE_PORTS(WRITE_PORTS)
 ) regs_forward_inst (
     // read from regs
     .regs_raddr_i,
@@ -103,18 +103,25 @@ resolve_delayslot #(
 );
 // need to be modified
 assign rd_pipe_id[0] = pipe_id_n;
+for (genvar i = 1; i < N_ISSUE; ++i)
+    assign rd_pipe_id[i] = '0;
 
 // set pipe_id_n
 assign pipe_id_n.valid              = pipe_if.valid;
 // need to be modified
 assign pipe_id_n.regs_rddata0       = regs_rddata_o[0];
-assign pipe_id_n.regs_rddata1       = regs_rddata_o[1];
+assign pipe_id_n.regs_rddata1       = decoder_resp.use_imm ? (decoder_resp.imm_signed ?
+                                    {{$bits(uint32_t)-16{pipe_if.inst[15]}}, pipe_if.inst[15:0]} :
+                                    {{$bits(uint32_t)-16{1'b0}}, pipe_if.inst[15:0]}) :
+                                    regs_rddata_o[1];
 assign pipe_id_n.cp0_rreq.raddr     = decoder_resp.rs2;
 assign pipe_id_n.cp0_rreq.rsel      = pipe_if.inst[2:0];
 assign pipe_id_n.decode_resp        = decoder_resp;
 // need to be modified
 assign pipe_id_n.delayslot          = rd_resolved_delayslot[0];
+assign pipe_id_n.inst_fetch         = pipe_if;
 assign pipe_id_n.dcache_req.vaddr   = regs_rddata_o[0] + {{16{pipe_if.inst[15]}}, pipe_if.inst[15:0]};
+assign pipe_id_n.dcache_req.paddr   = '0;
 // need to be modified
 assign pipe_id_n.dcache_req.be      = decoder_resp.be;
 assign pipe_id_n.dcache_req.wrdata  = pipe_id_n.regs_rddata1;
@@ -122,6 +129,9 @@ assign pipe_id_n.dcache_req.read    = decoder_resp.is_load;
 assign pipe_id_n.dcache_req.write   = decoder_resp.is_store;
 assign pipe_id_n.dcache_req.uncached= 1'b0;     // unused
 assign pipe_id_n.dcache_req.inv     = 1'b0;     // temp not support
+
+// set ready_o
+assign ready_o = ready_i;
 
 // update pipe_id
 always_ff @ (posedge clk) begin

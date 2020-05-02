@@ -10,7 +10,7 @@ module decoder #(
 );
 
 // setup instruction fields
-logic [5:0] opcode, func;
+logic [5:0] opcode, funct;
 reg_addr_t rs, rt, rd;
 assign opcode    = inst[31:26];
 assign rs        = inst[25:21];
@@ -42,7 +42,7 @@ decode_branch #(
 );
 // set cf
 always_comb begin
-    unique casez( { is_branch, is_return, is_call, is_jump_i | is_jump_r } )
+    unique casez ( { is_branch, is_return, is_call, is_jump_i | is_jump_r } )
         4'b1???: decoder_resp.cf = ControlFlow_Branch;
         4'b01??: decoder_resp.cf = ControlFlow_Return;
         4'b001?: decoder_resp.cf = ControlFlow_Call;
@@ -67,17 +67,17 @@ always_comb begin
     decoder_resp.is_multicyc    = 1'b0;
     decoder_resp.be         = '0;
 
-    unique casez(opcode)
+    unique casez (opcode)
         6'b000000: begin    // SPECIAL (Reg-Reg)
             decoder_resp.rs1 = rs;
             decoder_resp.rs2 = rt;
             decoder_resp.rd  = rd;
-            unique casez(funct)
+            unique casez (funct)
                 6'b0110??: decoder_resp.is_multicyc = 1'b1;
                 6'b0100?1: decoder_resp.is_multicyc = 1'b1;
                 default:   decoder_resp.is_multicyc = 1'b0;
             endcase
-            unique case(funct)
+            unique case (funct)
                 /* shift */
                 6'b000000: decoder_resp.op = OP_SLL;
                 6'b000010: decoder_resp.op = OP_SRL;
@@ -148,12 +148,12 @@ always_comb begin
             decoder_resp.rs1 = rs;
             decoder_resp.rs2 = rt;
             decoder_resp.rd  = rd;
-            unique casez(funct)
+            unique casez (funct)
                 6'b000?0?, 6'b000010:
                     decoder_resp.is_multicyc = 1'b1;
                 default: decoder_resp.is_multicyc = 1'b0;
             endcase
-            unique case(funct)
+            unique case (funct)
                 6'b000000: decoder_resp.op = OP_MADD;
                 6'b000001: decoder_resp.op = OP_MADDU;
                 6'b000100: decoder_resp.op = OP_MSUB;
@@ -168,9 +168,9 @@ always_comb begin
 
         6'b000001: begin    // REGIMM (Reg-Imm)
             decoder_resp.rs1 = rs;
-            decoder_resp.rd  = (instr[20:17] == 4'b1000) ? 5'd31 : 5'd0;
+            decoder_resp.rd  = (inst[20:17] == 4'b1000) ? 5'd31 : 5'd0;
             decoder_resp.use_imm = 1'b1;
-            unique case(instr[20:16])
+            unique case (inst[20:16])
                 `ifdef COMPILE_FULL_M
                 /* trap */
                 5'b01000: decoder_resp.op = OP_TGE;
@@ -192,7 +192,7 @@ always_comb begin
         6'b0001??: begin    // branch (Reg-Imm)
             decoder_resp.rs1 = rs;
             decoder_resp.rs2 = rt;
-            unique case(opcode[1:0])
+            unique case (opcode[1:0])
                 2'b00: decoder_resp.op = OP_BEQ;
                 2'b01: decoder_resp.op = OP_BNE;
                 2'b10: decoder_resp.op = OP_BLEZ;
@@ -205,7 +205,7 @@ always_comb begin
             decoder_resp.rd  = rt;
             decoder_resp.use_imm      = 1'b1;
             decoder_resp.imm_signed   = ~opcode[2];
-            unique case(opcode[2:0])
+            unique case (opcode[2:0])
                 3'b100: decoder_resp.op = OP_AND;
                 3'b101: decoder_resp.op = OP_OR;
                 3'b110: decoder_resp.op = OP_XOR;
@@ -222,7 +222,7 @@ always_comb begin
             decoder_resp.rs2     = (opcode[1:0] == 2'b10) ? rt : '0;
             decoder_resp.rd      = rt;
             decoder_resp.is_load = 1'b1;
-            unique case(opcode[2:0])
+            unique case (opcode[2:0])
                 3'b000: begin
                     decoder_resp.op = OP_LB;
                     decoder_resp.be = 4'b0001;
@@ -257,7 +257,7 @@ always_comb begin
             decoder_resp.rs1      = rs;
             decoder_resp.rs2      = rt;
             decoder_resp.is_store = 1'b1;
-            unique case(opcode[2:0])
+            unique case (opcode[2:0])
                 3'b000:  begin
                     decoder_resp.op = OP_SB;
                     decoder_resp.be = 4'b0001;
@@ -308,7 +308,7 @@ always_comb begin
         end
 
         6'b010000: begin // COP0
-            unique case(instr[25:21])
+            unique case (inst[25:21])
                 5'b00000: begin
                     decoder_resp.op = OP_MFC0;
                     decoder_resp.rd = rt;
@@ -318,7 +318,7 @@ always_comb begin
                     decoder_resp.rs1 = rt;
                 end
                 5'b10000: begin
-                    unique case(instr[5:0])
+                    unique case (inst[5:0])
                         `ifdef COMPILE_FULL_M
                         6'b000001: decoder_resp.op = OP_TLBR;
                         6'b000010: decoder_resp.op = OP_TLBWI;
@@ -371,11 +371,11 @@ always_comb begin
 
         6'b010001: begin  // COP1
             decoder_resp.is_fpu = 1'b1;
-            unique case(instr[25:21])
+            unique case (inst[25:21])
                 5'b00000: begin
                     decoder_resp.op  = OP_MFC1;
                     decoder_resp.rd  = rt;
-                    decoder_resp.fs1 = instr[15:11];
+                    decoder_resp.fs1 = inst[15:11];
                 end
                 5'b00010: begin
                     decoder_resp.op  = OP_CFC1;
@@ -384,7 +384,7 @@ always_comb begin
                 5'b00100: begin
                     decoder_resp.op  = OP_MTC1;
                     decoder_resp.rs1 = rt;
-                    decoder_resp.fd  = instr[15:11];
+                    decoder_resp.fd  = inst[15:11];
                     decoder_resp.fpu_we = 1'b1;
                 end
                 5'b00110: begin
@@ -403,7 +403,7 @@ always_comb begin
                     decoder_resp.fpu_we  = 1'b1;
                     decoder_resp.fcsr_we = 1'b1;
                     decoder_resp.is_fpu_multicyc = 1'b1;
-                    unique casez(instr[5:0])
+                    unique casez (inst[5:0])
                         6'b000000: decoder_resp.op = OP_FPU_ADD;
                         6'b000001: decoder_resp.op = OP_FPU_SUB;
                         6'b000010: decoder_resp.op = OP_FPU_MUL;
@@ -451,7 +451,7 @@ always_comb begin
                     decoder_resp.fpu_we  = 1'b1;
                     decoder_resp.fcsr_we = 1'b1;
                     decoder_resp.is_fpu_multicyc = 1'b1;
-                    unique casez(instr[5:0])
+                    unique casez (inst[5:0])
                         6'b100000: decoder_resp.op = OP_FPU_CVTS;
                         default: begin
                             decoder_resp.op = OP_INVALID;
@@ -468,7 +468,7 @@ always_comb begin
 
 `ifdef ASIC_ENABLED
         6'b010010: begin // COP2
-            unique case(instr[25:21])
+            unique case (inst[25:21])
                 5'b00000: begin
                     decoder_resp.op = OP_MFC2;
                     decoder_resp.rd = rt;

@@ -47,7 +47,7 @@ generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
         assign inst_resp[i].miss     = (inst_mapped[i] & inst_tlb_result.miss);
         assign inst_resp[i].illegal  = (is_user_mode & inst_vaddr[i][31]);
         assign inst_resp[i].inv      = (inst_mapped[i] & ~inst_tlb_resp.valid);
-        assign inst_resp[i].uncached = is_vaddr_uncached(inst_vaddr[i]);
+        assign inst_resp[i].uncached = is_vaddr_uncached(inst_vaddr[i], kseg0_uncached);
         assign inst_resp[i].paddr    = inst_mapped[i] ? inst_tlb_resp.paddr : {3'b0, inst_vaddr[i][28:0]};
         assign inst_resp[i].vaddr    = inst_vaddr[i];
     end
@@ -55,7 +55,7 @@ generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
     // note that dirty = 1 when writable
     for (genvar i = 0; i < N_ISSUE; ++i) begin : gen_data_resp
         assign data_mapped[i]        = is_vaddr_mapped(data_vaddr[i]);
-        assign data_resp[i].uncached = is_vaddr_uncached(data_vaddr[i]) | (data_mapped[i] && data_tlb_resp[i].cache_flag == 3'd2);
+        assign data_resp[i].uncached = is_vaddr_uncached(data_vaddr[i], kseg0_uncached) | (data_mapped[i] && data_tlb_resp[i].cache_flag == 3'd2);
         assign data_resp[i].dirty    = (~data_mapped[i] | data_tlb_resp[i].dirty);
         assign data_resp[i].miss     = (data_mapped[i] & data_tlb_resp[i].miss);
         assign data_resp[i].illegal  = (is_user_mode & data_vaddr[i][31]);
@@ -96,7 +96,7 @@ end else begin : gen_mmu_disabled_code
         for (int i = 0; i < N_ISSUE; ++i) begin
             data_resp[i] = '0;
             data_resp[i].dirty    = 1'b1;
-            data_resp[i].uncached = is_vaddr_uncached(data_vaddr[i]);
+            data_resp[i].uncached = is_vaddr_uncached(data_vaddr[i], kseg0_uncached);
             data_resp[i].paddr    = {3'b0, data_vaddr[i][28:0]};
         end
     end

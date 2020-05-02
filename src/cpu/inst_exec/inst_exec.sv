@@ -44,8 +44,8 @@ uint32_t exec_ret, reg0, reg1, inst;
 assign reg0     = pipe_id.regs_rddata0;
 assign reg1     = pipe_id.regs_rddata1;
 assign op       = pipe_id.decode_resp.op;
-assign inst     = pipe_id.inst;
-assign pc_vaddr = pipe_id.vaddr;
+assign inst     = pipe_id.inst_fetch.inst;
+assign pc_vaddr = pipe_id.inst_fetch.vaddr;
 
 // unsigned register arithmetic
 uint32_t add_u, sub_u;
@@ -253,7 +253,7 @@ assign ex_mm = {
     mem_addrex & pipe_id.dcache_req.write,
     mem_tlbex & pipe_id.dcache_req.read,
     mem_tlbex & pipe_id.dcache_req.write,
-    ~pipe_id.dcache_req.dirty & pipe_id.dcache_req.write
+    ~mmu_daddr_resp.dirty & pipe_id.dcache_req.write
 };
 
 always_comb begin
@@ -327,6 +327,8 @@ assign ready_o = (
     || multicyc_resp.ready
     || ~pipe_id.decode_resp.is_multicyc
 );
+// set valid
+assign pipe_ex_n.valid              = ready_o;
 // set cp0_wreq
 assign pipe_ex_n.cp0_wreq.we        = (op == OP_MTC0);
 assign pipe_ex_n.cp0_wreq.waddr     = pipe_id.cp0_rreq.raddr;
@@ -436,7 +438,7 @@ branch_resolver #(
 // inst multicyc_exec
 multicyc_exec #(
 
-) (
+) multicyc_exec_inst (
     // external signals
     .clk,
     . rst,
@@ -444,7 +446,7 @@ multicyc_exec #(
     .multicyc_req,
     .multicyc_resp
 );
-assign multicyc_req.op          = pipe_id.op;
+assign multicyc_req.op          = pipe_id.decode_resp.op;
 assign multicyc_req.reg0        = pipe_id.regs_rddata0;
 assign multicyc_req.reg1        = pipe_id.regs_rddata1;
 assign multicyc_req.is_multicyc = pipe_id.decode_resp.is_multicyc;

@@ -17,10 +17,10 @@ module branch_resolver #(
 logic reg_equal;
 assign reg_equal  = (reg0 == reg1);
 
-assign resolved_branch.valid   = pipe_id.valid & pipe_id.decode_desp.is_controlflow;
+assign resolved_branch.valid   = pipe_id.valid & pipe_id.decode_resp.is_controlflow;
 
 always_comb begin
-    unique case (pipe_id.decode_desp.op)
+    unique case (pipe_id.decode_resp.op)
         OP_BLTZ, OP_BLTZAL: resolved_branch.taken = reg1[31];
         OP_BGEZ, OP_BGEZAL: resolved_branch.taken = ~reg1[31];
         OP_BEQ:  resolved_branch.taken = reg_equal;
@@ -36,17 +36,17 @@ always_comb begin
         default: resolved_branch.taken = 1'b0;
     endcase
 
-    unique case (pipe_id.decode_desp.op)
+    unique case (pipe_id.decode_resp.op)
         `ifdef FPU_ENABLED
         OP_BC1,
         `endif
 
         OP_BLTZ, OP_BLTZAL, OP_BGEZ, OP_BGEZAL,
         OP_BEQ,  OP_BNE,    OP_BLEZ, OP_BGTZ: begin
-            resolved_branch.target = pipe_id.decode_desp.default_jump_i;
+            resolved_branch.target = pipe_id.decode_resp.default_jump_i;
         end
         OP_JAL:  begin
-            resolved_branch.target = pipe_id.decode_desp.default_jump_j;
+            resolved_branch.target = pipe_id.decode_resp.default_jump_j;
         end
         OP_JALR: begin
             resolved_branch.target = reg0;

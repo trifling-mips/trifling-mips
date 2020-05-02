@@ -298,37 +298,37 @@ always_comb begin
     `endif
 
     /* exception (MEM stage) */
-    if(except_req.valid) begin
-        if(except_req.eret) begin
+    if(except_req_i.valid) begin
+        if(except_req_i.eret) begin
             if(cp0_regs_n.status.erl)
                 cp0_regs_n.status.erl = 1'b0;
             else cp0_regs_n.status.exl = 1'b0;
         end else begin
             if(cp0_regs_n.status.exl == 1'b0) begin
-                if (except_req.delayslot) begin
-                    cp0_regs_n.epc = except_req.pc - 32'h4;
+                if (except_req_i.delayslot) begin
+                    cp0_regs_n.epc = except_req_i.pc - 32'h4;
                     cp0_regs_n.cause.bd = 1'b1;
                 end else begin
-                    cp0_regs_n.epc = except_req.pc;
+                    cp0_regs_n.epc = except_req_i.pc;
                     cp0_regs_n.cause.bd = 1'b0;
                 end
             end
 
             cp0_regs_n.status.exl = 1'b1;
-            cp0_regs_n.cause.exc_code = except_req.code;
+            cp0_regs_n.cause.exc_code = except_req_i.code;
 
             `ifdef COMPILE_FULL_M
-            if(except_req.code == EXCCODE_CpU)
-                cp0_regs_n.cause.ce = except_req.extra[1:0];
+            if(except_req_i.code == EXCCODE_CpU)
+                cp0_regs_n.cause.ce = except_req_i.extra[1:0];
             `endif
 
-            if(except_req.code == EXCCODE_ADEL || except_req.code == EXCCODE_ADES) begin
-                cp0_regs_n.bad_vaddr = except_req.extra;
+            if(except_req_i.code == EXCCODE_ADEL || except_req_i.code == EXCCODE_ADES) begin
+                cp0_regs_n.bad_vaddr = except_req_i.extra;
             `ifdef COMPILE_FULL_M
-            end else if(except_req.code == EXCCODE_TLBL || except_req.code == EXCCODE_TLBS || except_req.code == EXCCODE_MOD) begin
-                cp0_regs_n.bad_vaddr = except_req.extra;
-                cp0_regs_n.context_[22:4] = except_req.extra[31:13];      // context.bad_vpn2
-                cp0_regs_n.entry_hi[31:13] = except_req.extra[31:13];     // entry_hi.vpn2
+            end else if(except_req_i.code == EXCCODE_TLBL || except_req_i.code == EXCCODE_TLBS || except_req_i.code == EXCCODE_MOD) begin
+                cp0_regs_n.bad_vaddr = except_req_i.extra;
+                cp0_regs_n.context_[22:4] = except_req_i.extra[31:13];      // context.bad_vpn2
+                cp0_regs_n.entry_hi[31:13] = except_req_i.extra[31:13];     // entry_hi.vpn2
             `endif
             end
         end
