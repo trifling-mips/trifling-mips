@@ -9,7 +9,7 @@
 `include "cache_defs.svh"
 
 // funcs
-`define DEF_STRUCT_TAG_T typedef struct packed { \
+`define DEF_STRUCT_ICACHE_TAG_T typedef struct packed { \
     logic valid; \
     logic [TAG_WIDTH - 1:0] tag; \
 } tag_t;

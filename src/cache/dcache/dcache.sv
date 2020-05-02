@@ -38,7 +38,7 @@ localparam int unsigned TAG_WIDTH   = $bits(phys_t) - INDEX_WIDTH - LINE_BYTE_OF
 localparam int unsigned LABEL_WIDTH = INDEX_WIDTH + TAG_WIDTH;
 
 // define all data structs & funcs
-`DEF_STRUCT_TAG_T
+`DEF_STRUCT_DCACHE_TAG_T
 `DEF_STRUCT_INDEX_T
 `DEF_STRUCT_LABEL_T
 `DEF_STRUCT_OFFSET_T
@@ -54,7 +54,7 @@ localparam int unsigned LABEL_WIDTH = INDEX_WIDTH + TAG_WIDTH;
 index_t stage0_ram_raddr;
 // pipe 0(tag access & data access)
 // dcache_req
-dcache_req pipe0_req, pipe0_req_n;
+dcache_req_t pipe0_req, pipe0_req_n;
 // ram req for tag, tag_rdata -> curr_addr's tag, rm prefetch
 tag_t [SET_ASSOC - 1:0] pipe0_tag_rddata;
 line_t [SET_ASSOC - 1:0] pipe0_data_rddata;
@@ -94,7 +94,7 @@ logic [$clog2(SET_ASSOC) - 1:0] stage1_assoc_waddr, stage1_repl_index_waddr;
 label_t stage1_sb_label_i;
 logic stage1_sb_label_i_rdy, stage1_sb_inv;
 // dcache_pass
-dcache_req stage1_dp_req;
+dcache_req_t stage1_dp_req;
 logic stage1_dp_push;
 // write_buffer
 logic stage1_wb_push, stage1_wb_pushed, stage1_wb_query_found, stage1_wb_query_on_pop;
@@ -106,7 +106,7 @@ logic stage1_wb_write, stage1_wb_written, stage1_wb_query_found_wb, stage1_wb_cl
 // line_recv, buffer for prefetch & wb_fifo
 logic [LINE_WIDTH / DATA_WIDTH - 1:0][DATA_WIDTH - 1:0] stage1_line_recv, stage1_line_recv_n;
 // stage 1 resp
-dcache_resp stage1_resp, stage1_dp_resp;
+dcache_resp_t stage1_resp, stage1_dp_resp;
 // pipe 1(tag update)
 // forward stage1_tag_wdata
 tag_t pipe1_tag_wrdata;
@@ -116,7 +116,7 @@ index_t pipe1_tag_waddr;
 logic [SET_ASSOC-1:0] pipe1_hit, pipe1_hit_n;
 logic [LINE_WIDTH / DATA_WIDTH - 1:0][DATA_WIDTH - 1:0] pipe1_data_rddata;
 // uncached & read in dcache_req unused
-dcache_req pipe1_req, pipe1_req_n;
+dcache_req_t pipe1_req, pipe1_req_n;
 // stage 2(pipe 1 - 2)
 logic [LINE_WIDTH / DATA_WIDTH - 1:0][DATA_WIDTH - 1:0] stage2_data_wrdata;
 logic [SET_ASSOC-1:0] stage2_data_we;

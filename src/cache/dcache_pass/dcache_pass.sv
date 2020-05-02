@@ -21,12 +21,12 @@ module dcache_pass #(
     axi3_wr_if.master   axi3_wr_if,
 
     // uncached req
-    input   dcache_req  dcache_uncached_req,
-    input   logic       push,
-    output  logic       full,
+    input   dcache_req_t    dcache_uncached_req,
+    input   logic           push,
+    output  logic           full,
 
     // uncached resp, only for load
-    output  dcache_resp dcache_uncached_resp
+    output  dcache_resp_t   dcache_uncached_resp
 );
 
 generate if (DATA_DEPTH == 0) begin
@@ -42,10 +42,10 @@ end else begin
     // pointer
     addr_t head, head_n, tail, tail_n;
     // mem & valid
-    dcache_req [DATA_DEPTH - 1:0] mem, mem_n;
+    dcache_req_t [DATA_DEPTH - 1:0] mem, mem_n;
     logic  [DATA_DEPTH - 1:0] valid, valid_n;
     // axi3 transfer for load
-    dcache_req transfer_line, transfer_line_n;
+    dcache_req_t transfer_line, transfer_line_n;
 
     // Grow --->
     // O O O X X X X O O

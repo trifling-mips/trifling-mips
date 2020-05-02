@@ -27,7 +27,7 @@ localparam int unsigned TAG_WIDTH   = $bits(phys_t) - INDEX_WIDTH - LINE_BYTE_OF
 localparam int unsigned LABEL_WIDTH = INDEX_WIDTH + TAG_WIDTH;
 
 // define all data structs & funcs
-`DEF_STRUCT_TAG_T
+`DEF_STRUCT_ICACHE_TAG_T
 `DEF_STRUCT_INDEX_T
 `DEF_STRUCT_LABEL_T
 `DEF_STRUCT_OFFSET_T

@@ -48,7 +48,7 @@ icache #(
     .SET_ASSOC  ( ICACHE_SET_ASSOC  ),
     .CACHE_SIZE ( ICACHE_CACHE_SIZE ),
     .ARID       ( ICACHE_ARID       )
-) (
+) icache_inst (
     // external signals
     .clk,
     .rst,
