@@ -241,11 +241,11 @@ assign axi3_rd_if_icached.axi3_rd_resp.rdata   = icache_rdata;
 assign axi3_rd_if_icached.axi3_rd_resp.rresp   = icache_rresp;
 assign axi3_rd_if_icached.axi3_rd_resp.rlast   = icache_rlast;
 assign axi3_rd_if_icached.axi3_rd_resp.rvalid  = icache_rvalid;
-assign axi3_rd_if_icached.axi3_wr_resp.awready = icache_awready;
-assign axi3_rd_if_icached.axi3_wr_resp.wready  = icache_wready;
+assign axi3_wr_if_icached.axi3_wr_resp.awready = icache_awready;
+assign axi3_wr_if_icached.axi3_wr_resp.wready  = icache_wready;
 assign axi3_wr_if_icached.bid                  = icache_bid;
-assign axi3_rd_if_icached.axi3_wr_resp.bresp   = icache_bresp;
-assign axi3_rd_if_icached.axi3_wr_resp.bvalid  = icache_bvalid;
+assign axi3_wr_if_icached.axi3_wr_resp.bresp   = icache_bresp;
+assign axi3_wr_if_icached.axi3_wr_resp.bvalid  = icache_bvalid;
 
 // dcached
 assign dcache_arid    = axi3_rd_if_dcached.arid;
@@ -279,11 +279,11 @@ assign axi3_rd_if_dcached.axi3_rd_resp.rdata   = dcache_rdata;
 assign axi3_rd_if_dcached.axi3_rd_resp.rresp   = dcache_rresp;
 assign axi3_rd_if_dcached.axi3_rd_resp.rlast   = dcache_rlast;
 assign axi3_rd_if_dcached.axi3_rd_resp.rvalid  = dcache_rvalid;
-assign axi3_rd_if_dcached.axi3_wr_resp.awready = dcache_awready;
-assign axi3_rd_if_dcached.axi3_wr_resp.wready  = dcache_wready;
+assign axi3_wr_if_dcached.axi3_wr_resp.awready = dcache_awready;
+assign axi3_wr_if_dcached.axi3_wr_resp.wready  = dcache_wready;
 assign axi3_wr_if_dcached.bid                  = dcache_bid;
-assign axi3_rd_if_dcached.axi3_wr_resp.bresp   = dcache_bresp;
-assign axi3_rd_if_dcached.axi3_wr_resp.bvalid  = dcache_bvalid;
+assign axi3_wr_if_dcached.axi3_wr_resp.bresp   = dcache_bresp;
+assign axi3_wr_if_dcached.axi3_wr_resp.bvalid  = dcache_bvalid;
 
 // duncached
 assign duncache_arid    = axi3_rd_if_duncached.arid;
@@ -317,11 +317,11 @@ assign axi3_rd_if_duncached.axi3_rd_resp.rdata   = duncache_rdata;
 assign axi3_rd_if_duncached.axi3_rd_resp.rresp   = duncache_rresp;
 assign axi3_rd_if_duncached.axi3_rd_resp.rlast   = duncache_rlast;
 assign axi3_rd_if_duncached.axi3_rd_resp.rvalid  = duncache_rvalid;
-assign axi3_rd_if_duncached.axi3_wr_resp.awready = duncache_awready;
-assign axi3_rd_if_duncached.axi3_wr_resp.wready  = duncache_wready;
+assign axi3_wr_if_duncached.axi3_wr_resp.awready = duncache_awready;
+assign axi3_wr_if_duncached.axi3_wr_resp.wready  = duncache_wready;
 assign axi3_wr_if_duncached.bid                  = duncache_bid;
-assign axi3_rd_if_duncached.axi3_wr_resp.bresp   = duncache_bresp;
-assign axi3_rd_if_duncached.axi3_wr_resp.bvalid  = duncache_bvalid;
+assign axi3_wr_if_duncached.axi3_wr_resp.bresp   = duncache_bresp;
+assign axi3_wr_if_duncached.axi3_wr_resp.bvalid  = duncache_bvalid;
 
 // inst cache_controller
 cache_controller #(
