@@ -35,7 +35,7 @@ virt_t pc, npc;
 logic ibus_valid;
 uint32_t ibus_rddata;
 pipe_if_t pipe_if;
-hand_shake_if hand_shake_ifid();
+logic ready_i;
 // icache
 cpu_ibus_if ibus();
 axi3_rd_if #(.BUS_WIDTH(BUS_WIDTH)) axi3_rd_if();
@@ -140,7 +140,7 @@ task unittest_(
     req_counter = 0;
     cycle = 0;
     // reset global control signals
-    hand_shake_ifid.ready = 1'b1;
+    ready_i = 1'b1;
     while (!$feof(fans)) begin
         // wait negedge clk to ensure line_data already update
         @ (negedge clk);
@@ -153,7 +153,7 @@ task unittest_(
         // issue req
         if (ibus.ready && !$feof(freq)) begin
             $fscanf(freq, "%x %x %x %x %x\n",
-                hand_shake_ifid.ready,
+                ready_i,
                 resolved_branch.taken,
                 resolved_branch.target,
                 except_req.valid,
@@ -163,7 +163,7 @@ task unittest_(
         end
 
         // check ans
-        if (hand_shake_ifid.valid) begin
+        if (pipe_if.valid) begin
             $sformat(out, {"%x-%x"}, pipe_if.vaddr, pipe_if.inst);
             judge(fans, ans_counter, out);
             ans_counter = ans_counter + 1;
