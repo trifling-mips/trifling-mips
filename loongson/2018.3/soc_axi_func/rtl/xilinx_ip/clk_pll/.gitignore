@@ -1,0 +1,11 @@
+# dir
+/doc
+
+# file
+*.dcp
+*.v
+*.veo
+*.xdc
+*.xml
+*.vhdl
+*.vh
