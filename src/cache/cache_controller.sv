@@ -9,7 +9,7 @@ module cache_controller #(
     parameter   ICACHE_LINE_WIDTH           =   256,
     parameter   ICACHE_SET_ASSOC            =   4,
     parameter   ICACHE_CACHE_SIZE           =   16 * 1024 * 8,
-    parameter   ICACHE_ARID                 =   0
+    parameter   ICACHE_ARID                 =   0,
     // DCACHE parameter
     parameter   DCACHE_DATA_WIDTH           =   32, 
     parameter   DCACHE_LINE_WIDTH           =   256, 

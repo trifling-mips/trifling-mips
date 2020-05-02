@@ -15,7 +15,6 @@ module repl_fifo #(
     output  logic   [$clog2(SET_ASSOC) - 1:0]   repl_index
 );
 
-genvar i;
 `ifdef REPL_SIM
 integer sim_i;
 `endif
@@ -29,15 +28,14 @@ logic [$clog2(SET_ASSOC) - 1:0] index_avail_min;
 assign repl_index = index_avail_min;
 
 // decode state
-generate begin
-for (i = 0; i < SET_ASSOC; i++) begin
-    assign index_avail[i] = ^|state[i];
+for (genvar i = 0; i < SET_ASSOC; i++) begin
+    assign index_avail[i] = ~|state[i];
 end
-if (SET_ASSOC == 2) begin   // 2-way
+generate if (SET_ASSOC == 2) begin   // 2-way
     always_comb begin
         index_avail_min = '0;
         casez (index_avail)
-            2'1?: begin
+            2'b1?: begin
                 index_avail_min[0] = 1'b0;
             end
             2'b01: begin
@@ -45,8 +43,7 @@ if (SET_ASSOC == 2) begin   // 2-way
             end
         endcase
     end
-end
-else begin                  // 4-way
+end else begin                  // 4-way
     always_comb begin
         index_avail_min = '0;
         casez (index_avail)
@@ -68,15 +65,13 @@ else begin                  // 4-way
             end
         endcase
     end
-end
-endgenerate
+end endgenerate
 
 // update state_n
-generate begin
 // maybe we should generate different comb according to SET_ASSOC?
 always_comb begin
     state_n = state;
-    for (i = 0; i < SET_ASSOC; i++) begin
+    for (int i = 0; i < SET_ASSOC; i++) begin
         if (access[i]) begin
             state_n[i] = {$clog2(SET_ASSOC){1'b1}};
         end
@@ -89,9 +84,9 @@ end
 // update state
 always_ff @ (posedge clk) begin
     if (rst) begin
-        state <= '0;
-    end
-    else if (update) begin
+        for (int i = 0; i < SET_ASSOC; ++i)
+            state[i] <= '0;
+    end else if (update) begin
         state <= state_n;
     end
     `ifdef REPL_SIM
