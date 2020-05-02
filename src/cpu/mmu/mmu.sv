@@ -33,8 +33,8 @@ module mmu #(
 );
 
 // define funcs
-`define DEF_FUNC_IS_VADDR_MAPPED
-`define DEF_FUNC_IS_VADDR_UNCACHED
+`DEF_FUNC_IS_VADDR_MAPPED
+`DEF_FUNC_IS_VADDR_UNCACHED
 
 generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
     logic [N_ISSUE - 1:0] data_mapped;
@@ -67,7 +67,7 @@ generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
     // inst tlb
     tlb #(
         .N_ISSUE(N_ISSUE),
-        .N_INST_CHANNEL(N_INST_CHANNEL)
+        .N_INST_CHANNEL(N_INST_CHANNEL),
         .N_TLB_ENTRIES(N_TLB_ENTRIES)
     ) tlb_inst (
         .clk,

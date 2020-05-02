@@ -13,7 +13,7 @@
     input   virt_t  vaddr \
 ); \
     // useg (0xx), kseg2 (110), kseg3 (111) \
-    return (~vaddr[31] || vaddr[31:30] = 2'b11); \
+    return (~vaddr[31] || vaddr[31:30] == 2'b11); \
 endfunction
 `define DEF_FUNC_IS_VADDR_UNCACHED function logic is_vaddr_uncached ( \
     input   virt_t  vaddr, \
