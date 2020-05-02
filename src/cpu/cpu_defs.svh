@@ -11,6 +11,25 @@
 typedef logic [$clog2(`N_REG)-1:0] reg_addr_t;
 typedef logic [4:0] cpu_interrupt_t;
 
+// funcs
+`define DEF_FUNC_MUX_BE function logic [DATA_WIDTH - 1:0] mux_be( \
+    input logic [DATA_WIDTH - 1:0] rdata, \
+    input logic [DATA_WIDTH - 1:0] wdata, \
+    input logic [(DATA_WIDTH / $bits(uint8_t)) - 1:0] sel \
+); \
+    uint8_t [(DATA_WIDTH / $bits(uint8_t)) - 1:0] r_data, w_data, mux_data; \
+ \
+    // reshape \
+    assign r_data = rdata; \
+    assign w_data = wdata; \
+    // select \
+    for (integer i = 0; i < (DATA_WIDTH / $bits(uint8_t)); i++) \
+        mux_data[i] = sel[i] ? w_data[i] : r_data[i]; \
+ \
+    return mux_data; \
+ \
+endfunction
+
 // hand_shake signals
 interface hand_shake_if();
     // hand shake signals
@@ -27,22 +46,6 @@ interface hand_shake_if();
     );
 
 endinterface
-
-// pipe struct
-typedef struct packed {
-    uint32_t inst;
-    virt_t vaddr;
-} pipe_if_t;
-
-// INST_FETCH
-typedef struct packed {
-    // Are we recognize this instruction as a controlflow?
-    logic valid;
-    // change the pipeline
-    logic taken;
-    // target pc
-    virt_t target;
-} branch_resolved_t;
 
 // DECODE
 // operator
@@ -107,14 +110,13 @@ typedef enum logic [6:0] {
     /* invalid */
     OP_INVALID
 } oper_t;
-
 // control flow type
 typedef enum logic [2:0] {
-	ControlFlow_None,
-	ControlFlow_Jump,
-	ControlFlow_Branch,
-	ControlFlow_Call,
-	ControlFlow_Return
+    ControlFlow_None,
+    ControlFlow_Jump,
+    ControlFlow_Branch,
+    ControlFlow_Call,
+    ControlFlow_Return
 } controlflow_t;
 
 // decode instruction
@@ -138,8 +140,10 @@ typedef struct packed {
     logic  imm_signed;      // use sign-extened immediate
     logic  use_imm;         // use immediate as reg2
     logic  is_controlflow;  // controlflow maybe changed
+    logic  is_multicyc;     // need multicyc_exec
     logic  is_load;         // load data
     logic  is_store;        // store data
+    logic[$bits(uint32_t)/$bits(uint8_t)-1:0] be;
 } decoder_resp_t;
 
 // Exception
@@ -183,6 +187,19 @@ typedef struct packed {
     virt_t pc, except_vec;
     uint32_t extra;
 } except_req_t;
+// address exception
+typedef struct packed {
+    logic miss, illegal, invalid;
+} address_exception_t;
+typedef struct packed {
+    logic valid;
+    except_code_t exc_code;
+    logic tlb_refill;
+    uint32_t extra;
+    oper_t op;
+    virt_t pc;
+    logic delayslot, eret;
+} exception_t;
 
 // CP0
 // CP0 request
@@ -239,6 +256,36 @@ typedef struct packed {
         entry_lo1,  entry_lo0,      random,     index;
 } cp0_regs_t;
 
+// regs req
+typedef struct packed {
+    logic we;
+    uint32_t wrdata;
+    reg_addr_t waddr;
+} regs_wreq_t;
+
+// INST_FETCH
+typedef struct packed {
+    // Are we recognize this instruction as a controlflow?
+    logic valid;
+    // change the pipeline
+    logic taken;
+    // target pc
+    virt_t target;
+} branch_resolved_t;
+
+// MULTICYC_EXEC
+typedef struct packed {
+    oper_t op;
+    logic is_multicyc;
+    uint64_t hilo;
+    uint32_t reg0, reg1;
+} multicyc_req_t;
+typedef struct packed {
+    // valid == ready
+    logic ready, valid;
+    uint64_t hilo;
+} multicyc_resp_t;
+
 // MMU/TLB
 typedef logic [$clog2(`N_TLB_ENTRIES) - 1:0] tlb_index_t;
 typedef struct packed {
@@ -263,5 +310,40 @@ typedef struct packed {
     logic uncached;
     logic inv, miss, dirty, illegal;
 } mmu_resp_t;
+
+// pipe struct
+typedef struct packed {
+    logic valid;
+    uint32_t inst;
+    virt_t vaddr;
+    address_exception_t iaddr_ex;
+} pipe_if_t;
+typedef struct packed {
+    logic valid;
+    // pipe_if signals
+    pipe_if_t inst_fetch;
+    // inst decode
+    decoder_resp_t decode_resp;
+    logic delayslot;
+    // cp0 read req
+    cp0_rreq_t cp0_rreq;
+    // dcache req
+    dcache_req_t dcache_req;
+    // regs req (data from regfile at rs & rt)
+    uint32_t regs_rddata0, regs_rddata1;
+} pipe_id_t;
+typedef struct packed {
+    logic valid;
+    // cp0 req
+    cp0_wreq_t cp0_wreq;
+    // except req
+    exception_t exception;
+    // branch resolved
+    branch_resolved_t resolved_branch;
+    // regs write req (only one write port for each pipe_ex)
+    regs_wreq_t regs_wreq;
+    // for debug
+    debug_req_t debug_req;
+} pipe_ex_t;
 
 `endif
