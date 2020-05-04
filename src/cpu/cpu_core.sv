@@ -30,7 +30,7 @@ module cpu_core #(
 );
 
 // define interface for inst_fetch
-logic if_ready_i, if_ibus_ready, if_ibus_valid, if_pipe_if_flush;
+logic if_ready_i, if_ready_o, if_ibus_ready, if_ibus_valid;
 branch_resolved_t if_resolved_branch;
 except_req_t if_except_req;
 virt_t if_pc, if_npc;
@@ -38,7 +38,8 @@ mmu_resp_t if_mmu_iaddr_resp;
 uint32_t if_ibus_rddata;
 pipe_if_t if_pipe_if;
 // define interface for inst_decode
-logic id_ready_i, id_ready_o, id_pipe_if_flush;
+logic id_ready_i, id_ready_o;
+except_req_t id_except_req;
 pipe_if_t id_pipe_if;
 pipe_id_t id_pipe_id, id_pipe_id_n;
 pipe_ex_t id_pipe_ex;
@@ -78,7 +79,8 @@ cp0_regs_t except_cp0_regs;
 logic[7:0] except_interrupt_req;
 except_req_t except_except_req;
 // define interface for inst_exec
-logic ex_ready_o, ex_dbus_ready;
+logic ex_ready_i, ex_ready_o, ex_dbus_ready;
+except_req_t ex_except_req;
 dcache_resp_t ex_dcache_resp;
 uint32_t ex_cp0_rddata;
 pipe_id_t ex_pipe_id;
@@ -108,6 +110,7 @@ inst_fetch #(
     .rst,
     // ready from id stage
     .ready_i        (if_ready_i         ),
+    .ready_o        (if_ready_o         ),
     // ready from icache
     .ibus_ready     (if_ibus_ready      ),
     // branch resolved
@@ -123,8 +126,7 @@ inst_fetch #(
     .ibus_valid     (if_ibus_valid      ),
     .ibus_rddata    (if_ibus_rddata     ),
     // inst_fetch pipe
-    .pipe_if        (if_pipe_if         ),
-    .pipe_if_flush  (if_pipe_if_flush   )
+    .pipe_if        (if_pipe_if         )
 );
 assign if_ibus_ready    = ibus.ready;
 assign if_ibus_valid    = ibus.valid;
@@ -147,9 +149,10 @@ inst_decode #(
     // ready from ex stage & ready to if stage
     .ready_i        (id_ready_i         ),
     .ready_o        (id_ready_o         ),
+    // except_req
+    .except_req     (id_except_req      ),
     // pipe_if
     .pipe_if        (id_pipe_if         ),
-    .pipe_if_flush  (id_pipe_if_flush   ),
     // pipe_id
     .pipe_id_n      (id_pipe_id_n       ),
     .pipe_id        (id_pipe_id         ),
@@ -157,8 +160,8 @@ inst_decode #(
     .pipe_ex        (id_pipe_ex         )
 );
 assign id_ready_i       = ex_ready_o;
+assign id_except_req    = except_except_req;
 assign id_pipe_if       = if_pipe_if;
-assign id_pipe_if_flush = if_pipe_if_flush;
 assign id_pipe_ex       = ex_pipe_ex_n;
 
 // inst mmu
@@ -274,7 +277,10 @@ inst_exec #(
     .clk,
     .rst,
     // ready
+    .ready_i        (ex_ready_i         ),
     .ready_o        (ex_ready_o         ),
+    // except_req
+    .except_req     (ex_except_req      ),
     // dcache_resp
     .dbus_ready     (ex_dbus_ready      ),
     .dcache_resp    (ex_dcache_resp     ),
@@ -288,6 +294,8 @@ inst_exec #(
     // mmu result
     .mmu_daddr_resp (ex_mmu_daddr_resp  )
 );
+assign ex_ready_i       = if_ready_o;
+assign ex_except_req    = except_except_req;
 assign ex_dbus_ready    = dbus.ready;
 assign ex_dcache_resp   = dbus.dcache_resp;
 assign ex_cp0_rddata    = cp0_cp0_rddata;
@@ -302,7 +310,15 @@ assign ibus.vaddr       = if_npc;
 assign ibus.paddr       = mmu_inst_resp[0].paddr;
 assign ibus.paddr_plus1 = mmu_inst_resp[1].paddr;
 // set dbus
-assign dbus.dcache_req  = dbus.ready ? id_pipe_id_n.dcache_req : id_pipe_id.dcache_req;
+assign dbus.dcache_req.vaddr    = id_pipe_id_n.dcache_req.vaddr;
+assign dbus.dcache_req.be       = ex_pipe_ex_n.be;
+assign dbus.dcache_req.wrdata   = id_pipe_id_n.dcache_req.wrdata;
+assign dbus.dcache_req.read     = id_pipe_id_n.dcache_req.read & ex_ready_o;
+assign dbus.dcache_req.write    = id_pipe_id_n.dcache_req.write & ex_ready_o;
+assign dbus.dcache_req.inv      = id_pipe_id_n.dcache_req.inv & ex_ready_o;
+assign dbus.dcache_req.paddr    = mmu_data_resp[0].paddr;
+assign dbus.dcache_req.uncached = mmu_data_resp[0].uncached;
+assign dbus.dcache_req.cancel   = except_except_req.valid;
 // set debug_req
 assign debug_req        = ex_pipe_ex.debug_req;
 

@@ -257,10 +257,18 @@ always_comb begin
                     cp0_regs_n.status.cu1 = wrdata[29];
                     `endif
 
-                    cp0_regs_n.status.bev = wrdata[22];
+                    `ifdef COMPILE_FULL_M
+                    cp0_regs_n.status.bev = wrdata[22];     // for loongson
+                    `endif
+
                     cp0_regs_n.status.im = wrdata[15:8];
                     cp0_regs_n.status.um = wrdata[4];
+
+                    `ifdef COMPILE_FULL_M
                     cp0_regs_n.status[2:0] = wrdata[2:0];  // ERL/EXL/IE
+                    `else
+                    cp0_regs_n.status[1:0] = wrdata[1:0];  // EXL/IE
+                    `endif
                 end
                 5'd13: begin
                     cp0_regs_n.cause.iv = wrdata[23];
@@ -298,13 +306,16 @@ always_comb begin
     `endif
 
     /* exception (MEM stage) */
-    if(except_req_i.valid) begin
-        if(except_req_i.eret) begin
+    if (except_req_i.valid) begin
+        if (except_req_i.eret) begin
+            `ifdef COMPILE_FULL_M
             if(cp0_regs_n.status.erl)
                 cp0_regs_n.status.erl = 1'b0;
-            else cp0_regs_n.status.exl = 1'b0;
+            else 
+            `endif
+            cp0_regs_n.status.exl = 1'b0;
         end else begin
-            if(cp0_regs_n.status.exl == 1'b0) begin
+            if (cp0_regs_n.status.exl == 1'b0) begin
                 if (except_req_i.delayslot) begin
                     cp0_regs_n.epc = except_req_i.pc - 32'h4;
                     cp0_regs_n.cause.bd = 1'b1;

@@ -77,6 +77,7 @@ end else begin
 
         // push one line
         if(push && ~full) begin
+            $display("dcache_pass: push req for addr(%x) at %x", dcache_uncached_req.paddr, tail);
             mem_n[tail] = dcache_uncached_req;
             valid_n[tail] = 1'b1;
 
@@ -172,6 +173,7 @@ end else begin
                 if (axi3_rd_if.axi3_rd_resp.rvalid) begin
                     dcache_uncached_resp.rddata = axi3_rd_if.axi3_rd_resp.rdata;
                     dcache_uncached_resp.valid  = 1'b1;
+                    $display("dcache_pass: read data(%x) from addr(%x)", dcache_uncached_resp.rddata, transfer_line.paddr);
                 end
         endcase
     end

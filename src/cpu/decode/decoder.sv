@@ -65,7 +65,7 @@ always_comb begin
     decoder_resp.is_store   = 1'b0;
     decoder_resp.is_controlflow = is_branch | is_jump_i | is_jump_r;
     decoder_resp.is_multicyc    = 1'b0;
-    decoder_resp.be         = '0;
+    // ex stage set be
 
     unique casez (opcode)
         6'b000000: begin    // SPECIAL (Reg-Reg)
@@ -225,26 +225,21 @@ always_comb begin
             unique case (opcode[2:0])
                 3'b000: begin
                     decoder_resp.op = OP_LB;
-                    decoder_resp.be = 4'b0001;
                 end
                 3'b001: begin
                     decoder_resp.op = OP_LH;
-                    decoder_resp.be = 4'b0011;
                 end
                 `ifdef COMPILE_FULL_M
                 3'b010: decoder_resp.op = OP_LWL;
                 `endif
                 3'b011:begin
                     decoder_resp.op = OP_LW;
-                    decoder_resp.be = 4'b1111;
                 end
                 3'b100: begin
                     decoder_resp.op = OP_LBU;
-                    decoder_resp.be = 4'b0001;
                 end
                 3'b101: begin
                     decoder_resp.op = OP_LHU;
-                    decoder_resp.be = 4'b0011;
                 end
                 `ifdef COMPILE_FULL_M
                 3'b110: decoder_resp.op = OP_LWR;
@@ -260,18 +255,15 @@ always_comb begin
             unique case (opcode[2:0])
                 3'b000:  begin
                     decoder_resp.op = OP_SB;
-                    decoder_resp.be = 4'b0001;
                 end
                 3'b001:  begin
                     decoder_resp.op = OP_SH;
-                    decoder_resp.be = 4'b0011;
                 end
                 `ifdef COMPILE_FULL_M
                 3'b010:  decoder_resp.op = OP_SWL;
                 `endif
                 3'b011:  begin
                     decoder_resp.op = OP_SW;
-                    decoder_resp.be = 4'b1111;
                 end
                 `ifdef COMPILE_FULL_M
                 3'b110:  decoder_resp.op = OP_SWR;

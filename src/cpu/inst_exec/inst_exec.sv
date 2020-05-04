@@ -9,7 +9,10 @@ module inst_exec #(
     input   logic   clk,
     input   logic   rst,
     // ready
+    input   logic   ready_i,
     output  logic   ready_o,
+    // except_req
+    input   except_req_t    except_req,
     // dcache_resp
     input   logic           dbus_ready,
     input   dcache_resp_t   dcache_resp,
@@ -25,7 +28,7 @@ module inst_exec #(
 );
 
 // define funcs
-`DEF_FUNC_MUX_BE
+`DEF_FUNC_LOAD_SEL
 
 // define interface for hilo
 logic hilo_we;
@@ -184,7 +187,7 @@ virt_t mmu_vaddr;
 assign mmu_vaddr = pipe_id.dcache_req.vaddr;
 always_comb begin
     `ifdef COMPILE_FULL_M
-    unique case(op)
+    unique case (op)
         OP_TEQ:  trap_valid = (reg1 == reg2);
         OP_TNE:  trap_valid = (reg1 != reg2);
         OP_TGE:  trap_valid = ~signed_lt;
@@ -196,7 +199,7 @@ always_comb begin
     `else
     trap_valid = '0;
     `endif
-    unique case(op)
+    unique case (op)
         `ifdef FPU_ENABLED
         OP_SDC1A, OP_LDC1A:
             daddr_unaligned = |mmu_vaddr[2:0];
@@ -258,8 +261,11 @@ assign ex_mm = {
 
 always_comb begin
     ex = '0;
+    ex.pc    = pipe_id.inst_fetch.vaddr;
     ex.valid = ((|ex_if) | invalid_inst | (|ex_ex) | (|ex_mm)) & pipe_id.valid;
     ex.tlb_refill = mmu_daddr_resp.miss & ~mem_addrex;
+    ex.delayslot  = pipe_id.delayslot;
+    ex.eret       = (op == OP_ERET);
     if (|ex_if) begin
         ex.extra = pipe_id.inst_fetch.vaddr;
         unique casez (ex_if)
@@ -322,18 +328,43 @@ always_comb begin
 end
 
 // set ready
+logic branch_stall;
+assign branch_stall = resolved_branch.taken && ~ready_i;
 assign ready_o = (
-    dbus_ready && (pipe_id.decode_resp.is_load || pipe_id.decode_resp.is_store)
-    || multicyc_resp.ready
-    || ~pipe_id.decode_resp.is_multicyc
-);
+    dbus_ready && multicyc_resp.ready
+) && ~branch_stall;
+// pipe_ex_flush
+logic pipe_ex_flush;
+assign pipe_ex_flush = except_req.valid;
 // set valid
 assign pipe_ex_n.valid              = ready_o;
+// set be
+always_comb begin
+    pipe_ex_n.be = '0;
+    unique case (pipe_id.decode_resp.op)
+        OP_LW, OP_SW: pipe_ex_n.be = '1;
+        OP_LH, OP_LHU, OP_SH: 
+            unique case (pipe_id.dcache_req.vaddr[1:0])
+                2'b00: pipe_ex_n.be = 4'b0011;
+                2'b10: pipe_ex_n.be = 4'b1100;
+                default: pipe_ex_n.be = '0;
+            endcase
+        OP_LB, OP_LBU, OP_SB:
+            unique case (pipe_id.dcache_req.vaddr[1:0])
+                2'b00: pipe_ex_n.be = 4'b0001;
+                2'b01: pipe_ex_n.be = 4'b0010;
+                2'b10: pipe_ex_n.be = 4'b0100;
+                2'b11: pipe_ex_n.be = 4'b1000;
+                default: pipe_ex_n.be = '0;
+            endcase
+        default: pipe_ex_n.be = '0;
+    endcase
+end
 // set cp0_wreq
-assign pipe_ex_n.cp0_wreq.we        = (op == OP_MTC0);
+assign pipe_ex_n.cp0_wreq.we        = (op == OP_MTC0) & pipe_id.valid & ~pipe_ex_flush;
 assign pipe_ex_n.cp0_wreq.waddr     = pipe_id.cp0_rreq.raddr;
 assign pipe_ex_n.cp0_wreq.wsel      = pipe_id.cp0_rreq.rsel;
-assign pipe_ex_n.cp0_wreq.wrdata    = reg1;
+assign pipe_ex_n.cp0_wreq.wrdata    = reg0;
 // set except_req
 assign pipe_ex_n.exception          = ex;
 // set branch_resolved
@@ -365,13 +396,13 @@ assign pipe_ex_n.regs_wreq.we       = (
     || op == OP_SLT
     || op == OP_MFC0
     || pipe_id.decode_resp.is_load
-);
+) & pipe_id.valid & ~pipe_ex_flush;
 assign pipe_ex_n.regs_wreq.waddr = pipe_id.decode_resp.rd;
-assign pipe_ex_n.regs_wreq.wrdata= pipe_id.decode_resp.is_load ? mux_be(pipe_id.regs_rddata1, dcache_resp.rddata, pipe_id.decode_resp.be) : exec_ret;
+assign pipe_ex_n.regs_wreq.wrdata= pipe_id.decode_resp.is_load ? load_sel(dcache_resp.rddata, pipe_id.dcache_req.vaddr, pipe_id.decode_resp.op) : exec_ret;
 // set pipe_ex_n.debug_req
 assign pipe_ex_n.debug_req.vaddr = pipe_id.inst_fetch.vaddr;
 assign pipe_ex_n.debug_req.regs_wrdata = pipe_ex_n.regs_wreq.wrdata;
-assign pipe_ex_n.debug_req.regs_wbe = (
+assign pipe_ex_n.debug_req.regs_wbe = ((
     op == OP_LUI
     || op == OP_AND
     || op == OP_OR
@@ -396,11 +427,11 @@ assign pipe_ex_n.debug_req.regs_wbe = (
     || op == OP_SLTU
     || op == OP_SLT
     || op == OP_MFC0
-) ? '1 : ({4{pipe_id.decode_resp.is_load}} & pipe_id.decode_resp.be);
+) ? '1 : ({4{pipe_id.decode_resp.is_load}} & pipe_ex_n.be)) & {4{pipe_id.valid}};
 assign pipe_ex_n.debug_req.regs_waddr = pipe_id.decode_resp.rd;
 // update pipe_ex
 always_ff @ (posedge clk) begin
-    if (rst) begin
+    if (rst | pipe_ex_flush) begin
         pipe_ex <= '0;
     end else if (ready_o) begin
         pipe_ex <= pipe_ex_n;

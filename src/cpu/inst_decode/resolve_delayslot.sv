@@ -7,8 +7,10 @@ module resolve_delayslot #(
     // external signals
     input   logic   clk,
     input   logic   rst,
-    // flush signals (same as pipe_ifid's flush)
+    // flush signals
     input   logic   flush,
+    // stall signals
+    input   logic   stall,
     // resolve delayslot
     input   pipe_id_t[N_ISSUE - 1:0]    pipe_id,        // from inst_decoder's output(pipe_id_n), before sync
     output  logic[N_ISSUE - 1:0]        resolved_delayslot
@@ -35,9 +37,9 @@ always_comb begin
 end
 
 always_ff @ (posedge clk) begin
-    if(rst || flush)
+    if (rst | flush)
         wait_delayslot <= 1'b0;
-    else
+    else if (~stall)
         wait_delayslot <= wait_delayslot_n;
 end
 

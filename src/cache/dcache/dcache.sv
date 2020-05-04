@@ -134,8 +134,11 @@ assign stage0_ram_raddr = dbus.ready ? get_index(dbus.dcache_req.vaddr) : get_in
 // pipe 1(tag access & data access)
 always_comb begin
     pipe0_req_n = pipe0_req;
-    if (dbus.ready) pipe0_req_n = dbus.dcache_req;
-    else pipe0_req_n.paddr = dbus.dcache_req.paddr;
+    if (dbus.ready) begin
+        pipe0_req_n = dbus.dcache_req;
+        pipe0_req_n.wrdata = dbus.dcache_req.wrdata << ($bits(uint8_t) * dbus.dcache_req.vaddr[1:0]);
+    end
+    // else pipe0_req_n.paddr = dbus.dcache_req.paddr;
 end
 // store pipe0_req, pipe0_req.paddr is previous
 always_ff @ (posedge clk) begin
@@ -150,10 +153,10 @@ end
 // stage 1(pipe 0 - 1)
 // write_buffer
 assign stage1_wb_query_wrdata = pipe0_req.wrdata;
-assign stage1_wb_query_wbe    = pipe0_req.be;
+assign stage1_wb_query_wbe    = dbus.dcache_req.be;
 assign stage1_wb_query_label  = get_label(dbus.dcache_req.paddr);
 // not always write, only hit & non_pop can write, if cache hit both write
-assign stage1_wb_write        = pipe0_req.write & (stage1_wb_query_found & ~stage1_wb_query_on_pop);
+assign stage1_wb_write        = pipe0_req.write & (stage1_wb_query_found & ~stage1_wb_query_on_pop) & ~dbus.dcache_req.cancel;
 // check cache_miss
 // hit from rddata
 for (genvar i = 0; i < SET_ASSOC; ++i) begin : gen_dcache_hit_rd
@@ -206,6 +209,8 @@ always_comb begin
             if (dbus.dcache_req.uncached && (stage1_dp_push && pipe0_dp_full)) stage1_state_n = DCACHE_WAIT_UNCACHED;
             // inv dcache
             if (pipe0_req.inv) stage1_state_n = DCACHE_INVALIDATING;
+            // cancel
+            if (dbus.dcache_req.cancel) stage1_state_n = DCACHE_IDLE;
         end
         DCACHE_FETCH: begin
             // fetch complete && wb_line pused
@@ -250,7 +255,7 @@ always_comb begin
         DCACHE_FETCH:
             if (~stage1_prefetch_hit) begin
                 // fetch
-                stage1_sb_label_i = get_label(pipe0_req.paddr);
+                stage1_sb_label_i = get_label(dbus.dcache_req.paddr);
                 stage1_sb_label_i_rdy = 1'b1;
             end
     endcase
@@ -261,7 +266,7 @@ always_comb begin
     stage1_dp_req.paddr = dbus.dcache_req.paddr;
 end
 // when waiting uncached load to execute, cannot issue push
-assign stage1_dp_push = (pipe0_req.read | pipe0_req.write) & dbus.dcache_req.uncached & (stage1_state != DCACHE_UNCACHED_LOAD);
+assign stage1_dp_push = (pipe0_req.read | pipe0_req.write) & dbus.dcache_req.uncached & (stage1_state != DCACHE_UNCACHED_LOAD) & ~dbus.dcache_req.cancel;
 // ram req for tag
 assign stage1_tag_wrdata.dirty = pipe0_req.write;
 assign stage1_tag_wrdata.valid = (stage1_state != DCACHE_INVALIDATING) && (stage1_state != DCACHE_RESET);
@@ -275,7 +280,7 @@ always_comb begin
     stage1_need_push_n  = stage1_need_push;
 
     stage1_wb_push      = 1'b0;
-    stage1_wb_plabel    = {stage1_tag_rddata[stage1_assoc_waddr].tag, get_index(pipe0_req.paddr)};
+    stage1_wb_plabel    = {stage1_tag_rddata[stage1_assoc_waddr].tag, get_index(dbus.dcache_req.paddr)};
     stage1_wb_pdata     = pipe0_data_rddata[stage1_assoc_waddr];
     case (stage1_state)
         DCACHE_IDLE: begin
@@ -302,7 +307,7 @@ always_comb begin
         end
         DCACHE_INVALIDATING: begin
             stage1_wb_push      = stage1_tag_rddata[stage1_assoc_cnt].valid && stage1_tag_rddata[stage1_assoc_cnt].dirty;
-            stage1_wb_plabel    = {stage1_tag_rddata[stage1_assoc_cnt].tag, get_index(pipe0_req.paddr)};
+            stage1_wb_plabel    = {stage1_tag_rddata[stage1_assoc_cnt].tag, get_index(dbus.dcache_req.paddr)};
             stage1_wb_pdata     = pipe0_data_rddata[stage1_assoc_cnt];
             // only first period of inv, can cause data-collision of pipe2_data_rdata
             if (~|stage1_assoc_cnt && (stage1_wb_plabel == pipe2_data_wlabel && pipe2_data_write)) stage1_wb_pdata = pipe2_data_wrdata;
@@ -313,7 +318,7 @@ always_comb begin
 end
 // when stall pipeline, record stage1_tag_mux && stage1_need_push
 always_ff @ (posedge clk) begin
-    if (rst) begin
+    if (rst | dbus.dcache_req.cancel) begin
         stage1_tag_rddata <= '0;
         stage1_need_push  <= 1'b0;
     end else begin
@@ -370,28 +375,28 @@ always_comb begin
             end
             // normal write
             if (|stage1_hit && pipe0_req.write) begin
-                stage1_tag_we      = stage1_hit;
+                stage1_tag_we      = stage1_hit & {SET_ASSOC{~dbus.dcache_req.cancel}};
                 stage1_tag_waddr   = get_index(pipe0_req.vaddr);
             end
         end
         DCACHE_FETCH:
             if (&pipe0_sb_line_vld && stage1_prefetch_hit && stage1_assoc_pushed) begin
                 stage2_data_we[stage1_assoc_waddr] = 1'b1;
-                stage2_data_waddr  = get_index(pipe0_req.paddr);
-                stage2_data_wlabel = get_label(pipe0_req.paddr);
+                stage2_data_waddr  = get_index(dbus.dcache_req.paddr);
+                stage2_data_wlabel = get_label(dbus.dcache_req.paddr);
                 stage2_data_wrdata = pipe0_sb_line;
                 stage1_tag_we[stage1_assoc_waddr] = 1'b1;
-                stage1_tag_waddr   = get_index(pipe0_req.paddr);
+                stage1_tag_waddr   = get_index(dbus.dcache_req.paddr);
                 pipe1_hit_n[stage1_assoc_waddr]   = 1'b1;
             end
         DCACHE_WAIT_WB:
             if (stage1_assoc_pushed) begin
                 stage2_data_we[stage1_assoc_waddr] = 1'b1;
-                stage2_data_waddr  = get_index(pipe0_req.paddr);
-                stage2_data_wlabel = get_label(pipe0_req.paddr);
+                stage2_data_waddr  = get_index(dbus.dcache_req.paddr);
+                stage2_data_wlabel = get_label(dbus.dcache_req.paddr);
                 stage2_data_wrdata = stage1_line_recv;
                 stage1_tag_we[stage1_assoc_waddr] = 1'b1;
-                stage1_tag_waddr   = get_index(pipe0_req.paddr);
+                stage1_tag_waddr   = get_index(dbus.dcache_req.paddr);
                 pipe1_hit_n[stage1_assoc_waddr]   = 1'b1;
             end
         DCACHE_RESET: begin
@@ -401,7 +406,7 @@ always_comb begin
         end
         DCACHE_INVALIDATING: begin
             pipe1_hit_n      = '0;
-            stage1_tag_waddr = get_index(pipe0_req.paddr);
+            stage1_tag_waddr = get_index(dbus.dcache_req.paddr);
             if (~(stage1_wb_push && pipe0_wb_full)) begin
                 stage1_tag_we[stage1_assoc_cnt] = 1'b1;
                 stage1_assoc_cnt_n = stage1_assoc_cnt + 1;
@@ -436,7 +441,10 @@ always_ff @ (posedge clk) begin
 end
 always_comb begin
     pipe1_req_n       = pipe0_req;
+    pipe1_req_n.be    = dbus.dcache_req.be;
     pipe1_req_n.paddr = dbus.dcache_req.paddr;
+    // cancel write
+    pipe1_req_n.write &= ~dbus.dcache_req.cancel;
     // cache miss, but wb hit & can write, no need write cache
     if (~|stage1_hit && stage1_wb_write) begin
         pipe1_req_n.write = 1'b0;
@@ -447,7 +455,7 @@ always_comb begin
     end
 end
 always_ff @ (posedge clk) begin
-    if (rst || ~dbus.ready) begin       // stall pipe 0 -> 1
+    if (rst | ~dbus.ready) begin       // stall pipe 0 -> 1
         pipe1_hit   <= '0;
         pipe1_req   <= '0;
         pipe1_data_rddata <= '0;
@@ -488,7 +496,7 @@ assign dbus.dcache_resp = dbus.dcache_req.uncached ? stage1_dp_resp : stage1_res
 stream_buffer #(
     .LINE_WIDTH(LINE_WIDTH),
     .ARID(AID)
-) icache_prefetch (
+) dcache_prefetch (
     .label_i        (stage1_sb_label_i      ),
     .label_i_rdy    (stage1_sb_label_i_rdy  ),
     .inv            (stage1_sb_inv          ),
@@ -590,7 +598,7 @@ for (genvar i = 0; i < GROUP_NUM; ++i) begin: gen_plru
         .clk,
         .rst,
         .access     (pipe1_hit_n),      // stage1_hit
-        .update     (dbus.ready && (~pipe0_req.inv) && i[INDEX_WIDTH-1:0] == get_index(pipe0_req.paddr)),
+        .update     (dbus.ready && (~pipe0_req.inv) && i[INDEX_WIDTH-1:0] == get_index(dbus.dcache_req.paddr)),
         .repl_index (pipe0_repl_index[i])
     );
 end

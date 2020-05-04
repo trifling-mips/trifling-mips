@@ -21,12 +21,12 @@ assign resolved_branch.valid   = pipe_id.valid & pipe_id.decode_resp.is_controlf
 
 always_comb begin
     unique case (pipe_id.decode_resp.op)
-        OP_BLTZ, OP_BLTZAL: resolved_branch.taken = reg1[31];
-        OP_BGEZ, OP_BGEZAL: resolved_branch.taken = ~reg1[31];
+        OP_BLTZ, OP_BLTZAL: resolved_branch.taken = reg0[31];
+        OP_BGEZ, OP_BGEZAL: resolved_branch.taken = ~reg0[31];
         OP_BEQ:  resolved_branch.taken = reg_equal;
         OP_BNE:  resolved_branch.taken = ~reg_equal;
-        OP_BLEZ: resolved_branch.taken = reg_equal | reg1[31];
-        OP_BGTZ: resolved_branch.taken = ~reg_equal & ~reg1[31];
+        OP_BLEZ: resolved_branch.taken = reg_equal | reg0[31];
+        OP_BGTZ: resolved_branch.taken = ~reg_equal & ~reg0[31];
         OP_JAL, OP_JALR: resolved_branch.taken = 1'b1;
 
         `ifdef FPU_ENABLED

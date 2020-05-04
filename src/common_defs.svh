@@ -12,6 +12,9 @@
 // compile_options
 `include "compile_options.svh"
 
+// belongs to cpu_defs, temp move to common_defs
+typedef logic [$clog2(`N_REG)-1:0] reg_addr_t;
+
 // data formats
 typedef logic [7:0]     uint8_t;
 typedef logic [15:0]    uint16_t;
@@ -53,7 +56,7 @@ typedef struct packed {
     // byteenable[i] corresponds to wrdata[(i + 1) * 8 - 1 : i * 8]
     logic [$bits(uint32_t) / $bits(uint8_t) - 1:0] be;
     uint32_t wrdata;
-    logic read, write, uncached, inv;
+    logic read, write, uncached, inv, cancel;
 } dcache_req_t;
 typedef struct packed {
     uint32_t rddata;

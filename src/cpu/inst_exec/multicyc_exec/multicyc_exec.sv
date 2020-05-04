@@ -161,7 +161,7 @@ always_comb begin
 end
 
 // set multicyc_resp.ready
-assign multicyc_resp.ready = (state == ME_IDLE && ~multicyc_req.is_multicyc);
+assign multicyc_resp.ready = state_n == ME_IDLE;
 // set multicyc_resp
 assign multicyc_resp.valid = multicyc_resp.ready && pipe_multicyc_req.is_multicyc;
 assign multicyc_resp.hilo  = hilo_ret;

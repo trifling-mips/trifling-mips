@@ -8,27 +8,8 @@
 // common defs
 `include "common_defs.svh"
 
-typedef logic [$clog2(`N_REG)-1:0] reg_addr_t;
+// typedef logic [$clog2(`N_REG)-1:0] reg_addr_t;
 typedef logic [4:0] cpu_interrupt_t;
-
-// funcs
-`define DEF_FUNC_MUX_BE function logic [DATA_WIDTH - 1:0] mux_be( \
-    input logic [DATA_WIDTH - 1:0] rdata, \
-    input logic [DATA_WIDTH - 1:0] wdata, \
-    input logic [(DATA_WIDTH / $bits(uint8_t)) - 1:0] sel \
-); \
-    uint8_t [(DATA_WIDTH / $bits(uint8_t)) - 1:0] r_data, w_data, mux_data; \
- \
-    // reshape \
-    assign r_data = rdata; \
-    assign w_data = wdata; \
-    // select \
-    for (integer i = 0; i < (DATA_WIDTH / $bits(uint8_t)); i++) \
-        mux_data[i] = sel[i] ? w_data[i] : r_data[i]; \
- \
-    return mux_data; \
- \
-endfunction
 
 // hand_shake signals
 interface hand_shake_if();
@@ -143,7 +124,6 @@ typedef struct packed {
     logic  is_multicyc;     // need multicyc_exec
     logic  is_load;         // load data
     logic  is_store;        // store data
-    logic[$bits(uint32_t)/$bits(uint8_t)-1:0] be;
 } decoder_resp_t;
 
 // Exception
@@ -196,7 +176,6 @@ typedef struct packed {
     except_code_t exc_code;
     logic tlb_refill;
     uint32_t extra;
-    oper_t op;
     virt_t pc;
     logic delayslot, eret;
 } exception_t;
@@ -342,6 +321,8 @@ typedef struct packed {
     branch_resolved_t resolved_branch;
     // regs write req (only one write port for each pipe_ex)
     regs_wreq_t regs_wreq;
+    // be
+    logic[$bits(uint32_t)/$bits(uint8_t)-1:0] be;
     // for debug
     debug_req_t debug_req;
 } pipe_ex_t;

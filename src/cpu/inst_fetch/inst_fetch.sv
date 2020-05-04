@@ -10,6 +10,7 @@ module inst_fetch #(
     input   logic   rst,
     // ready from id stage
     input   logic   ready_i,
+    output  logic   ready_o,
     // ready from icache
     input   logic   ibus_ready,
     // branch resolved
@@ -25,12 +26,13 @@ module inst_fetch #(
     input   logic       ibus_valid,
     input   uint32_t    ibus_rddata,
     // inst_fetch pipe
-    output  pipe_if_t   pipe_if,
-    output  logic       pipe_if_flush
+    output  pipe_if_t   pipe_if
 );
 
-logic ready;
-assign pipe_if_flush = except_req.valid | resolved_branch.taken;
+logic ready, branch_flow, branch_stall, pipe_if_flush;
+assign branch_flow = (resolved_branch.taken && pipe_if.valid);
+assign branch_stall= (resolved_branch.taken && ~pipe_if.valid);
+assign pipe_if_flush = except_req.valid | branch_flow;
 assign ready = (ibus_ready & ready_i) | pipe_if_flush;
 // inst pc_generator
 pc_generator #(
@@ -49,13 +51,16 @@ assign address_exception.invalid = mmu_iaddr_resp.inv;
 always_ff @ (posedge clk) begin
     if (rst | pipe_if_flush) begin
         pipe_if       <= '0;
-    end else if (ready_i) begin
+    end else if (ready_i | branch_stall) begin
         pipe_if.vaddr <= pc;
         pipe_if.inst  <= ibus_rddata & {$bits(uint32_t){ibus_valid}};
         pipe_if.valid <= ibus_valid;
         pipe_if.iaddr_ex <= address_exception & {$bits(address_exception_t){ibus_valid}};
     end
 end
+
+// set ready_o
+assign ready_o = pipe_if.valid;
 
 // inst bpu
 // TODO

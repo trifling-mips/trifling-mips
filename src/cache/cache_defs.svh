@@ -35,8 +35,8 @@ endfunction
     uint8_t [(DATA_WIDTH / $bits(uint8_t)) - 1:0] r_data, w_data, mux_data; \
  \
     // reshape \
-    assign r_data = rdata; \
-    assign w_data = wdata; \
+    r_data = rdata; \
+    w_data = wdata; \
     // select \
     for (integer i = 0; i < (DATA_WIDTH / $bits(uint8_t)); i++) \
         mux_data[i] = sel[i] ? w_data[i] : r_data[i]; \
