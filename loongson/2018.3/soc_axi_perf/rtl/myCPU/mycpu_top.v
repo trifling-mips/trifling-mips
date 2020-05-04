@@ -1,53 +1,53 @@
 `default_nettype none
 
 module mycpu_top #(
-	parameter BUS_WIDTH = 4
+    parameter BUS_WIDTH = 4
 ) (
     // external signals
     input  wire        aclk   ,
     input  wire        aresetn,
     input  wire [6 :0] int    ,
 
-	// AXI AR signals
-	output wire [BUS_WIDTH - 1 :0] arid   ,
-	output wire [31:0]             araddr ,
-	output wire [3 :0]             arlen  ,
-	output wire [2 :0]             arsize ,
-	output wire [1 :0]             arburst,
-	output wire [1 :0]             arlock ,
-	output wire [3 :0]             arcache,
-	output wire [2 :0]             arprot ,
-	output wire                    arvalid,
-	input  wire                    arready,
-	// AXI R signals
-	input  wire [BUS_WIDTH - 1 :0] rid    ,
-	input  wire [31:0]             rdata  ,
-	input  wire [1 :0]             rresp  ,
-	input  wire                    rlast  ,
-	input  wire                    rvalid ,
-	output wire                    rready ,
-	// AXI AW signals
-	output wire [BUS_WIDTH - 1 :0] awid   ,
-	output wire [31:0]             awaddr ,
-	output wire [3 :0]             awlen  ,
-	output wire [2 :0]             awsize ,
-	output wire [1 :0]             awburst,
-	output wire [1 :0]             awlock ,
-	output wire [3 :0]             awcache,
-	output wire [2 :0]             awprot ,
-	output wire                    awvalid,
-	input  wire                    awready,
-	// AXI W signals
-	output wire [BUS_WIDTH - 1 :0] wid    ,
-	output wire [31:0]             wdata  ,
-	output wire [3 :0]             wstrb  ,
-	output wire                    wlast  ,
-	output wire                    wvalid ,
-	input  wire                    wready ,
-	// AXI B signals
-	input  wire [BUS_WIDTH - 1 :0] bid    ,
-	input  wire [1 :0]             bresp  ,
-	input  wire                    bvalid ,
+    // AXI AR signals
+    output wire [BUS_WIDTH - 1 :0] arid   ,
+    output wire [31:0]             araddr ,
+    output wire [3 :0]             arlen  ,
+    output wire [2 :0]             arsize ,
+    output wire [1 :0]             arburst,
+    output wire [1 :0]             arlock ,
+    output wire [3 :0]             arcache,
+    output wire [2 :0]             arprot ,
+    output wire                    arvalid,
+    input  wire                    arready,
+    // AXI R signals
+    input  wire [BUS_WIDTH - 1 :0] rid    ,
+    input  wire [31:0]             rdata  ,
+    input  wire [1 :0]             rresp  ,
+    input  wire                    rlast  ,
+    input  wire                    rvalid ,
+    output wire                    rready ,
+    // AXI AW signals
+    output wire [BUS_WIDTH - 1 :0] awid   ,
+    output wire [31:0]             awaddr ,
+    output wire [3 :0]             awlen  ,
+    output wire [2 :0]             awsize ,
+    output wire [1 :0]             awburst,
+    output wire [1 :0]             awlock ,
+    output wire [3 :0]             awcache,
+    output wire [2 :0]             awprot ,
+    output wire                    awvalid,
+    input  wire                    awready,
+    // AXI W signals
+    output wire [BUS_WIDTH - 1 :0] wid    ,
+    output wire [31:0]             wdata  ,
+    output wire [3 :0]             wstrb  ,
+    output wire                    wlast  ,
+    output wire                    wvalid ,
+    input  wire                    wready ,
+    // AXI B signals
+    input  wire [BUS_WIDTH - 1 :0] bid    ,
+    input  wire [1 :0]             bresp  ,
+    input  wire                    bvalid ,
     output wire                    bready ,
     
     // debug signals
@@ -56,12 +56,6 @@ module mycpu_top #(
     output wire [4 :0] debug_wb_rf_wnum ,
     output wire [31:0] debug_wb_rf_wdata
 );
-
-    // we do not provide debug signals
-    assign debug_wb_pc = 32'b0;
-    assign debug_wb_rf_wen = 4'b0;
-    assign debug_wb_rf_wnum = 5'b0;
-    assign debug_wb_rf_wdata = 32'b0;
 
     wire [BUS_WIDTH - 1 :0] icache_arid     ;
     wire [31:0]             icache_araddr   ;
@@ -135,50 +129,50 @@ module mycpu_top #(
     wire [1 :0]             dcache_bresp    ;
     wire                    dcache_bvalid   ;
     wire                    dcache_bready   ;
-    wire [BUS_WIDTH - 1 :0] uncached_arid   ;
-    wire [31:0]             uncached_araddr ;
-    wire [3 :0]             uncached_arlen  ;
-    wire [2 :0]             uncached_arsize ;
-    wire [1 :0]             uncached_arburst;
-    wire [1 :0]             uncached_arlock ;
-    wire [3 :0]             uncached_arcache;
-    wire [2 :0]             uncached_arprot ;
-    wire                    uncached_arvalid;
-    wire                    uncached_arready;
-    wire [BUS_WIDTH - 1 :0] uncached_rid    ;
-    wire [31:0]             uncached_rdata  ;
-    wire [1 :0]             uncached_rresp  ;
-    wire                    uncached_rlast  ;
-    wire                    uncached_rvalid ;
-    wire                    uncached_rready ;
-    wire [BUS_WIDTH - 1 :0] uncached_awid   ;
-    wire [31:0]             uncached_awaddr ;
-    wire [3 :0]             uncached_awlen  ;
-    wire [2 :0]             uncached_awsize ;
-    wire [1 :0]             uncached_awburst;
-    wire [1 :0]             uncached_awlock ;
-    wire [3 :0]             uncached_awcache;
-    wire [2 :0]             uncached_awprot ;
-    wire                    uncached_awvalid;
-    wire                    uncached_awready;
-    wire [BUS_WIDTH - 1 :0] uncached_wid    ;
-    wire [31:0]             uncached_wdata  ;
-    wire [3 :0]             uncached_wstrb  ;
-    wire                    uncached_wlast  ;
-    wire                    uncached_wvalid ;
-    wire                    uncached_wready ;
-    wire [BUS_WIDTH - 1 :0] uncached_bid    ;
-    wire [1 :0]             uncached_bresp  ;
-    wire                    uncached_bvalid ;
-    wire                    uncached_bready ;
+    wire [BUS_WIDTH - 1 :0] duncache_arid   ;
+    wire [31:0]             duncache_araddr ;
+    wire [3 :0]             duncache_arlen  ;
+    wire [2 :0]             duncache_arsize ;
+    wire [1 :0]             duncache_arburst;
+    wire [1 :0]             duncache_arlock ;
+    wire [3 :0]             duncache_arcache;
+    wire [2 :0]             duncache_arprot ;
+    wire                    duncache_arvalid;
+    wire                    duncache_arready;
+    wire [BUS_WIDTH - 1 :0] duncache_rid    ;
+    wire [31:0]             duncache_rdata  ;
+    wire [1 :0]             duncache_rresp  ;
+    wire                    duncache_rlast  ;
+    wire                    duncache_rvalid ;
+    wire                    duncache_rready ;
+    wire [BUS_WIDTH - 1 :0] duncache_awid   ;
+    wire [31:0]             duncache_awaddr ;
+    wire [3 :0]             duncache_awlen  ;
+    wire [2 :0]             duncache_awsize ;
+    wire [1 :0]             duncache_awburst;
+    wire [1 :0]             duncache_awlock ;
+    wire [3 :0]             duncache_awcache;
+    wire [2 :0]             duncache_awprot ;
+    wire                    duncache_awvalid;
+    wire                    duncache_awready;
+    wire [BUS_WIDTH - 1 :0] duncache_wid    ;
+    wire [31:0]             duncache_wdata  ;
+    wire [3 :0]             duncache_wstrb  ;
+    wire                    duncache_wlast  ;
+    wire                    duncache_wvalid ;
+    wire                    duncache_wready ;
+    wire [BUS_WIDTH - 1 :0] duncache_bid    ;
+    wire [1 :0]             duncache_bresp  ;
+    wire                    duncache_bvalid ;
+    wire                    duncache_bready ;
 
     // initialization of CPU
-    nontrivial_mips_impl #(
+    trifling_mips #(
         .BUS_WIDTH(BUS_WIDTH)
-    ) nontrivial_mips_inst (
+    ) trifling_mips_inst (
         .aclk            (aclk            ),
-        .reset_n         (aresetn         ),
-        .intr            (int[0 +: 5]     ),
+        .rst_n           (aresetn         ),
+        .interrupt       (int[0 +: 5]     ),
         .icache_arid     (icache_arid     ),
         .icache_araddr   (icache_araddr   ),
         .icache_arlen    (icache_arlen    ),
@@ -251,42 +245,47 @@ module mycpu_top #(
         .dcache_bresp    (dcache_bresp    ),
         .dcache_bvalid   (dcache_bvalid   ),
         .dcache_bready   (dcache_bready   ),
-        .uncached_arid   (uncached_arid   ),
-        .uncached_araddr (uncached_araddr ),
-        .uncached_arlen  (uncached_arlen  ),
-        .uncached_arsize (uncached_arsize ),
-        .uncached_arburst(uncached_arburst),
-        .uncached_arlock (uncached_arlock ),
-        .uncached_arcache(uncached_arcache),
-        .uncached_arprot (uncached_arprot ),
-        .uncached_arvalid(uncached_arvalid),
-        .uncached_arready(uncached_arready),
-        .uncached_rid    (uncached_rid    ),
-        .uncached_rdata  (uncached_rdata  ),
-        .uncached_rresp  (uncached_rresp  ),
-        .uncached_rlast  (uncached_rlast  ),
-        .uncached_rvalid (uncached_rvalid ),
-        .uncached_rready (uncached_rready ),
-        .uncached_awid   (uncached_awid   ),
-        .uncached_awaddr (uncached_awaddr ),
-        .uncached_awlen  (uncached_awlen  ),
-        .uncached_awsize (uncached_awsize ),
-        .uncached_awburst(uncached_awburst),
-        .uncached_awlock (uncached_awlock ),
-        .uncached_awcache(uncached_awcache),
-        .uncached_awprot (uncached_awprot ),
-        .uncached_awvalid(uncached_awvalid),
-        .uncached_awready(uncached_awready),
-        .uncached_wid    (uncached_wid    ),
-        .uncached_wdata  (uncached_wdata  ),
-        .uncached_wstrb  (uncached_wstrb  ),
-        .uncached_wlast  (uncached_wlast  ),
-        .uncached_wvalid (uncached_wvalid ),
-        .uncached_wready (uncached_wready ),
-        .uncached_bid    (uncached_bid    ),
-        .uncached_bresp  (uncached_bresp  ),
-        .uncached_bvalid (uncached_bvalid ),
-        .uncached_bready (uncached_bready )
+        .duncache_arid   (duncache_arid   ),
+        .duncache_araddr (duncache_araddr ),
+        .duncache_arlen  (duncache_arlen  ),
+        .duncache_arsize (duncache_arsize ),
+        .duncache_arburst(duncache_arburst),
+        .duncache_arlock (duncache_arlock ),
+        .duncache_arcache(duncache_arcache),
+        .duncache_arprot (duncache_arprot ),
+        .duncache_arvalid(duncache_arvalid),
+        .duncache_arready(duncache_arready),
+        .duncache_rid    (duncache_rid    ),
+        .duncache_rdata  (duncache_rdata  ),
+        .duncache_rresp  (duncache_rresp  ),
+        .duncache_rlast  (duncache_rlast  ),
+        .duncache_rvalid (duncache_rvalid ),
+        .duncache_rready (duncache_rready ),
+        .duncache_awid   (duncache_awid   ),
+        .duncache_awaddr (duncache_awaddr ),
+        .duncache_awlen  (duncache_awlen  ),
+        .duncache_awsize (duncache_awsize ),
+        .duncache_awburst(duncache_awburst),
+        .duncache_awlock (duncache_awlock ),
+        .duncache_awcache(duncache_awcache),
+        .duncache_awprot (duncache_awprot ),
+        .duncache_awvalid(duncache_awvalid),
+        .duncache_awready(duncache_awready),
+        .duncache_wid    (duncache_wid    ),
+        .duncache_wdata  (duncache_wdata  ),
+        .duncache_wstrb  (duncache_wstrb  ),
+        .duncache_wlast  (duncache_wlast  ),
+        .duncache_wvalid (duncache_wvalid ),
+        .duncache_wready (duncache_wready ),
+        .duncache_bid    (duncache_bid    ),
+        .duncache_bresp  (duncache_bresp  ),
+        .duncache_bvalid (duncache_bvalid ),
+        .duncache_bready (duncache_bready ),
+        // debug signals
+        .debug_wb_pc      (debug_wb_pc      ),
+        .debug_wb_rf_wen  (debug_wb_rf_wen  ),
+        .debug_wb_rf_wnum (debug_wb_rf_wnum ),
+        .debug_wb_rf_wdata(debug_wb_rf_wdata)
     );
 
 
@@ -294,44 +293,44 @@ module mycpu_top #(
     cpu_internal_crossbar crossbar_inst (
         .aclk         (aclk),
         .aresetn      (aresetn),
-        .s_axi_awid   ({icache_awid   , dcache_awid   , uncached_awid   }),
-        .s_axi_awaddr ({icache_awaddr , dcache_awaddr , uncached_awaddr }),
-        .s_axi_awlen  ({icache_awlen  , dcache_awlen  , uncached_awlen  }),
-        .s_axi_awsize ({icache_awsize , dcache_awsize , uncached_awsize }),
-        .s_axi_awburst({icache_awburst, dcache_awburst, uncached_awburst}),
-        .s_axi_awlock ({icache_awlock , dcache_awlock , uncached_awlock }),
-        .s_axi_awcache({icache_awcache, dcache_awcache, uncached_awcache}),
-        .s_axi_awprot ({icache_awprot , dcache_awprot , uncached_awprot }),
+        .s_axi_awid   ({icache_awid   , dcache_awid   , duncache_awid   }),
+        .s_axi_awaddr ({icache_awaddr , dcache_awaddr , duncache_awaddr }),
+        .s_axi_awlen  ({icache_awlen  , dcache_awlen  , duncache_awlen  }),
+        .s_axi_awsize ({icache_awsize , dcache_awsize , duncache_awsize }),
+        .s_axi_awburst({icache_awburst, dcache_awburst, duncache_awburst}),
+        .s_axi_awlock ({icache_awlock , dcache_awlock , duncache_awlock }),
+        .s_axi_awcache({icache_awcache, dcache_awcache, duncache_awcache}),
+        .s_axi_awprot ({icache_awprot , dcache_awprot , duncache_awprot }),
         .s_axi_awqos  (12'b0),
-        .s_axi_awvalid({icache_awvalid, dcache_awvalid, uncached_awvalid}),
-        .s_axi_awready({icache_awready, dcache_awready, uncached_awready}),
-        .s_axi_wid    ({icache_wid    , dcache_wid    , uncached_wid    }),
-        .s_axi_wdata  ({icache_wdata  , dcache_wdata  , uncached_wdata  }),
-        .s_axi_wstrb  ({icache_wstrb  , dcache_wstrb  , uncached_wstrb  }),
-        .s_axi_wlast  ({icache_wlast  , dcache_wlast  , uncached_wlast  }),
-        .s_axi_wvalid ({icache_wvalid , dcache_wvalid , uncached_wvalid }),
-        .s_axi_wready ({icache_wready , dcache_wready , uncached_wready }),
-        .s_axi_bid    ({icache_bid    , dcache_bid    , uncached_bid    }),
-        .s_axi_bresp  ({icache_bresp  , dcache_bresp  , uncached_bresp  }),
-        .s_axi_bvalid ({icache_bvalid , dcache_bvalid , uncached_bvalid }),
-        .s_axi_bready ({icache_bready , dcache_bready , uncached_bready }),
-        .s_axi_arid   ({icache_arid   , dcache_arid   , uncached_arid   }),
-        .s_axi_araddr ({icache_araddr , dcache_araddr , uncached_araddr }),
-        .s_axi_arlen  ({icache_arlen  , dcache_arlen  , uncached_arlen  }),
-        .s_axi_arsize ({icache_arsize , dcache_arsize , uncached_arsize }),
-        .s_axi_arburst({icache_arburst, dcache_arburst, uncached_arburst}),
-        .s_axi_arlock ({icache_arlock , dcache_arlock , uncached_arlock }),
-        .s_axi_arcache({icache_arcache, dcache_arcache, uncached_arcache}),
-        .s_axi_arprot ({icache_arprot , dcache_arprot , uncached_arprot }),
+        .s_axi_awvalid({icache_awvalid, dcache_awvalid, duncache_awvalid}),
+        .s_axi_awready({icache_awready, dcache_awready, duncache_awready}),
+        .s_axi_wid    ({icache_wid    , dcache_wid    , duncache_wid    }),
+        .s_axi_wdata  ({icache_wdata  , dcache_wdata  , duncache_wdata  }),
+        .s_axi_wstrb  ({icache_wstrb  , dcache_wstrb  , duncache_wstrb  }),
+        .s_axi_wlast  ({icache_wlast  , dcache_wlast  , duncache_wlast  }),
+        .s_axi_wvalid ({icache_wvalid , dcache_wvalid , duncache_wvalid }),
+        .s_axi_wready ({icache_wready , dcache_wready , duncache_wready }),
+        .s_axi_bid    ({icache_bid    , dcache_bid    , duncache_bid    }),
+        .s_axi_bresp  ({icache_bresp  , dcache_bresp  , duncache_bresp  }),
+        .s_axi_bvalid ({icache_bvalid , dcache_bvalid , duncache_bvalid }),
+        .s_axi_bready ({icache_bready , dcache_bready , duncache_bready }),
+        .s_axi_arid   ({icache_arid   , dcache_arid   , duncache_arid   }),
+        .s_axi_araddr ({icache_araddr , dcache_araddr , duncache_araddr }),
+        .s_axi_arlen  ({icache_arlen  , dcache_arlen  , duncache_arlen  }),
+        .s_axi_arsize ({icache_arsize , dcache_arsize , duncache_arsize }),
+        .s_axi_arburst({icache_arburst, dcache_arburst, duncache_arburst}),
+        .s_axi_arlock ({icache_arlock , dcache_arlock , duncache_arlock }),
+        .s_axi_arcache({icache_arcache, dcache_arcache, duncache_arcache}),
+        .s_axi_arprot ({icache_arprot , dcache_arprot , duncache_arprot }),
         .s_axi_arqos  (12'b0),
-        .s_axi_arvalid({icache_arvalid, dcache_arvalid, uncached_arvalid}),
-        .s_axi_arready({icache_arready, dcache_arready, uncached_arready}),
-        .s_axi_rid    ({icache_rid    , dcache_rid    , uncached_rid    }),
-        .s_axi_rdata  ({icache_rdata  , dcache_rdata  , uncached_rdata  }),
-        .s_axi_rresp  ({icache_rresp  , dcache_rresp  , uncached_rresp  }),
-        .s_axi_rlast  ({icache_rlast  , dcache_rlast  , uncached_rlast  }),
-        .s_axi_rvalid ({icache_rvalid , dcache_rvalid , uncached_rvalid }),
-        .s_axi_rready ({icache_rready , dcache_rready , uncached_rready }),
+        .s_axi_arvalid({icache_arvalid, dcache_arvalid, duncache_arvalid}),
+        .s_axi_arready({icache_arready, dcache_arready, duncache_arready}),
+        .s_axi_rid    ({icache_rid    , dcache_rid    , duncache_rid    }),
+        .s_axi_rdata  ({icache_rdata  , dcache_rdata  , duncache_rdata  }),
+        .s_axi_rresp  ({icache_rresp  , dcache_rresp  , duncache_rresp  }),
+        .s_axi_rlast  ({icache_rlast  , dcache_rlast  , duncache_rlast  }),
+        .s_axi_rvalid ({icache_rvalid , dcache_rvalid , duncache_rvalid }),
+        .s_axi_rready ({icache_rready , dcache_rready , duncache_rready }),
         .m_axi_awid   (awid   ),
         .m_axi_awaddr (awaddr ),
         .m_axi_awlen  (awlen  ),
@@ -376,4 +375,3 @@ module mycpu_top #(
 endmodule
 
 `default_nettype wire
-

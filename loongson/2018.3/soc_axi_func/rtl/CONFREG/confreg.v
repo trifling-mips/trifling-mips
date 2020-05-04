@@ -219,6 +219,15 @@ module confreg
     assign rdata  = conf_rdata_reg;
     assign rvalid = conf_rvalid_reg;
     assign rlast  = conf_rlast_reg;
+
+    // for debug
+    /*always @ (negedge aclk) begin
+        if (arvalid)        $display("confreg: prepare to read (%x)", araddr);
+        if (awvalid)        $display("confreg: prepare to write (%x)", awaddr);
+        if (rvalid | rlast) $display("confreg: prepare rddata(%x)", rdata);
+        if (w_enter)        $display("confreg: write data(%x) to addr(%x)", wdata, buf_addr);
+    end*/
+
     always @(posedge aclk)
     begin
         if(~aresetn)
