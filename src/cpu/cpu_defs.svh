@@ -9,27 +9,69 @@
 `include "common_defs.svh"
 
 // typedef logic [$clog2(`N_REG)-1:0] reg_addr_t;
-typedef logic [4:0] cpu_interrupt_t;
-
-// hand_shake signals
-interface hand_shake_if();
-    // hand shake signals
-    logic ready, valid;
-
-    modport master (
-        output valid,
-        input ready
-    );
-
-    modport slave (
-        input valid,
-        output ready
-    );
-
-endinterface
+typedef logic[4:0] cpu_interrupt_t;
 
 // DECODE
 // operator
+typedef struct packed {
+    /* LL/SC */
+    logic op_sdc1, op_swc1, op_sc, op_ldc1, op_pref, op_lwc1, op_ll;
+    /* privileged instructions 47 */
+    logic op_cache;
+    /* store */
+    logic op_swr, op_sw, op_swl, op_sh, op_sb;
+    /* load */
+    logic op_lwr, op_lhu, op_lbu, op_lw, op_lwl, op_lh, op_lb;
+    /* count bits */
+    logic op_clo, op_clz;
+    /* multiplication and add/sub */
+    logic op_msubu, op_msub, op_mul, op_maddu, op_madd;
+    /* branch 20 - 23 */
+    logic op_bgtzl, op_blezl, op_bnel, op_beql;
+    logic op_cop1;
+    /* privileged instructions 16 */
+    logic op_wait, op_eret, op_tlbp, op_tlbwr, op_tlbwi, op_tlbr, op_mtc0, op_mfc0;
+    /* set */
+    logic op_lui;
+    /* logical (imm) */
+    logic op_xori, op_ori, op_andi;
+    /* compare and set (imm) */
+    logic op_sltiu, op_slti;
+    /* add and substract (imm) */
+    logic op_addiu, op_addi;
+    /* branch 2 - 7 */
+    logic op_bgtz, op_blez, op_bne, op_beq;
+    /* unconditional jump (imm) */
+    logic op_jal, op_j;
+    /* branch 1 */
+    logic op_bgezall, op_bltzall, op_bgezal, op_bltzal, op_bgezl, op_bltzl;
+    /* trap 1 */
+    logic op_tnei, op_teqi, op_tltiu, op_tlti, op_tgeiu, op_tgei;
+    /* branch 0 */
+    logic op_bgez, op_bltz;
+    /* trap 0 */
+    logic op_tne, op_teq, op_tltu, op_tlt, op_tgeu, op_tge;
+    /* compare and set (reg) */
+    logic op_sltu, op_slt;
+    /* logical (reg) */
+    logic op_nor, op_xor, op_or, op_and;
+    /* add and substract (reg) */
+    logic op_subu, op_sub, op_addu, op_add;
+    /* multiplication and division */
+    logic op_divu, op_div, op_multu, op_mult;
+    /* HI/LO move */
+    logic op_mtlo, op_mflo, op_mthi, op_mfhi;
+    /* sync */
+    logic op_sync;
+    /* breakpoint and syscall */
+    logic op_break, op_syscall;
+    /* conditional move */
+    logic op_movn, op_movz;
+    /* unconditional jump (reg) */
+    logic op_jalr, op_jr;
+    /* shift */
+    logic op_srav, op_srlv, op_sllv, op_sra, op_srl, op_movft, op_sll;
+} oper2_t;
 typedef enum logic [6:0] {
     /* shift */
     OP_SLL, OP_SRL, OP_SRA, OP_SLLV, OP_SRLV, OP_SRAV,
@@ -102,6 +144,7 @@ typedef enum logic [2:0] {
 
 // decode instruction
 typedef struct packed {
+    uint32_t     inst;
     reg_addr_t   rs1;
     reg_addr_t   rs2;
     reg_addr_t   rd;
@@ -184,12 +227,12 @@ typedef struct packed {
 // CP0 request
 typedef struct packed {
     reg_addr_t  raddr;
-    logic [2:0] rsel;
+    logic[2:0] rsel;
 } cp0_rreq_t;
 typedef struct packed {
     logic       we;
     reg_addr_t  waddr;
-    logic [2:0] wsel;
+    logic[2:0] wsel;
     uint32_t    wrdata;
 } cp0_wreq_t;
 // CP0 registers
@@ -198,21 +241,21 @@ typedef struct packed {
     logic rp, fr, re, mx;
     logic px, bev, ts, sr;
     logic nmi, zero;
-    logic [1:0] impl;
-    logic [7:0] im;
+    logic[1:0] impl;
+    logic[7:0] im;
     logic kx, sx, ux, um;
     logic r0, erl, exl, ie;
 } cp0_status_t;
 typedef struct packed {
     logic bd, zero30;
-    logic [1:0] ce;
-    logic [3:0] zero27_24;
+    logic[1:0] ce;
+    logic[3:0] zero27_24;
     logic iv, wp;
-    logic [5:0] zero21_16;
-    logic [7:0] ip;
+    logic[5:0] zero21_16;
+    logic[7:0] ip;
     logic zero7;
     except_code_t exc_code;
-    logic [1:0] zero1_0;
+    logic[1:0] zero1_0;
 } cp0_cause_t;
 typedef struct packed {
     uint32_t ebase, config1;
@@ -271,14 +314,14 @@ typedef struct packed {
     phys_t paddr;
     tlb_index_t index;
     logic miss, dirty, valid;
-    logic [2:0] cache_flag;
+    logic[2:0] cache_flag;
 } tlb_resp_t;
 typedef struct packed {
-    logic [2:0] c0, c1;
-    logic [7:0] asid;
-    logic [18:0] vpn2;
-    logic [23:0] pfn0, pfn1;
-    logic [11:0] mask;
+    logic[2:0] c0, c1;
+    logic[7:0] asid;
+    logic[18:0] vpn2;
+    logic[23:0] pfn0, pfn1;
+    logic[11:0] mask;
     logic d1, v1, d0, v0;
     logic G;
 } tlb_entry_t;
@@ -293,8 +336,7 @@ typedef struct packed {
 // pipe struct
 typedef struct packed {
     logic valid;
-    phys_t paddr;
-    virt_t vaddr;
+    mmu_resp_t[`N_INST_CHANNEL-1:0] mmu_iaddr_resp;
     address_exception_t iaddr_ex;
 } pipe_if_t;
 typedef struct packed {
@@ -313,6 +355,8 @@ typedef struct packed {
 } pipe_id_t;
 typedef struct packed {
     logic valid;
+    // pipe_if signals
+    pipe_if_t inst_fetch;
     // cp0 req
     cp0_wreq_t cp0_wreq;
     // except req
@@ -321,10 +365,17 @@ typedef struct packed {
     branch_resolved_t resolved_branch;
     // regs write req (only one write port for each pipe_ex)
     regs_wreq_t regs_wreq;
-    // be
-    logic[$bits(uint32_t)/$bits(uint8_t)-1:0] be;
+    // dcache_req_t
+    dcache_req_t dcache_req;
+    // inst decode
+    decoder_resp_t decode_resp;
+} pipe_ex_t;
+typedef struct packed {
+    logic valid;
+    // regs write req (only one write port for each pipe_wb)
+    regs_wreq_t regs_wreq;
     // for debug
     debug_req_t debug_req;
-} pipe_ex_t;
+} pipe_wb_t;
 
 `endif
