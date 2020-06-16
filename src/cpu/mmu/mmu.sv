@@ -91,6 +91,7 @@ end else begin : gen_mmu_disabled_code
             inst_resp[i] = '0;
             inst_resp[i].dirty = 1'b0;
             inst_resp[i].paddr = {3'b0, inst_vaddr[i][28:0]};
+            inst_resp[i].vaddr    = inst_vaddr[i];
         end
          // for data
         for (int i = 0; i < N_ISSUE; ++i) begin
@@ -98,6 +99,7 @@ end else begin : gen_mmu_disabled_code
             data_resp[i].dirty    = 1'b1;
             data_resp[i].uncached = is_vaddr_uncached(data_vaddr[i], kseg0_uncached);
             data_resp[i].paddr    = {3'b0, data_vaddr[i][28:0]};
+            data_resp[i].vaddr    = data_vaddr[i];
         end
     end
 end endgenerate
