@@ -1,12 +1,12 @@
 // except
-`include "inst_exec.svh"
+`include "except.svh"
 
 module except #(
     parameter   N_ISSUE     =   1
 ) (
     // external signals
     input   logic   rst,
-    // exception (not sync)
+    // exception (pipe_ex not sync)
     input   pipe_id_t[N_ISSUE-1:0]      pipe_id,
     input   pipe_ex_t[N_ISSUE-1:0]      pipe_ex,
     // cp0 regs & interrupt_req
