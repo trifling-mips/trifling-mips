@@ -56,7 +56,7 @@ typedef struct packed {
     // byteenable[i] corresponds to wrdata[(i + 1) * 8 - 1 : i * 8]
     logic [$bits(uint32_t) / $bits(uint8_t) - 1:0] be;
     uint32_t wrdata;
-    logic read, write, uncached, inv, cancel;
+    logic read, write, uncached, inv;
 } dcache_req_t;
 typedef struct packed {
     uint32_t rddata;
