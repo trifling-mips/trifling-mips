@@ -293,7 +293,7 @@ typedef struct packed {
 // pipe struct
 typedef struct packed {
     logic valid;
-    uint32_t inst;
+    phys_t paddr;
     virt_t vaddr;
     address_exception_t iaddr_ex;
 } pipe_if_t;

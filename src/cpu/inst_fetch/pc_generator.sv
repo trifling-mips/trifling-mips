@@ -10,20 +10,18 @@ module pc_generator #(
     // external signals
     input   logic   clk,
     input   logic   rst,
-    // ready from icache
-    input   logic   ready,
+    // update pc reg
+    input   logic   update,
     // branch resolved
     input   branch_resolved_t   resolved_branch,
     // except req
     input   except_req_t        except_req,
     // output
-    output  virt_t  pc,
-    output  virt_t  npc     // for icache fetch
+    output  virt_t  pc
 );
 
-// set npc
+// set pc_n
 virt_t pc_n;
-assign npc = ready ? pc_n : pc;
 always_comb begin
     pc_n = pc;
     // default
@@ -36,8 +34,8 @@ end
 
 always_ff @ (posedge clk) begin
     if (rst) begin
-        pc <= {BOOT_VEC[$bits(virt_t) - 1:LBITS_PC] - 1, {LBITS_PC{1'b0}}};
-    end else if (ready) begin
+        pc <= BOOT_VEC[$bits(virt_t) - 1:0];
+    end else if (update) begin
         pc <= pc_n;
     end
 end

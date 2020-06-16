@@ -19,21 +19,19 @@ module inst_fetch #(
     input   except_req_t        except_req,
     // output
     output  virt_t  pc,
-    output  virt_t  npc,    // for icache fetch
     // mmu iaddt resp
     input   mmu_resp_t  mmu_iaddr_resp,
     // icache resp
     input   logic       ibus_valid,
-    input   uint32_t    ibus_rddata,
     // inst_fetch pipe
     output  pipe_if_t   pipe_if
 );
 
-logic ready, branch_flow, branch_stall, pipe_if_flush;
-assign branch_flow = (resolved_branch.taken && pipe_if.valid);
-assign branch_stall= (resolved_branch.taken && ~pipe_if.valid);
+logic update, branch_flow, branch_stall, pipe_if_flush;
+assign branch_flow = (resolved_branch.taken && ibus_valid);
+assign branch_stall= (resolved_branch.taken && ~ibus_valid);
 assign pipe_if_flush = except_req.valid | branch_flow;
-assign ready = (ibus_ready & ready_i) | pipe_if_flush;
+assign update = (ibus_ready & ready_i) | pipe_if_flush;
 // inst pc_generator
 pc_generator #(
     .BOOT_VEC(BOOT_VEC),
@@ -53,8 +51,8 @@ always_ff @ (posedge clk) begin
         pipe_if       <= '0;
     end else if (ready_i | branch_stall) begin
         pipe_if.vaddr <= pc;
-        pipe_if.inst  <= ibus_rddata & {$bits(uint32_t){ibus_valid}};
-        pipe_if.valid <= ibus_valid;
+        pipe_if.paddr <= mmu_iaddr_resp.paddr;
+        pipe_if.valid <= 1'b1;
         pipe_if.iaddr_ex <= address_exception & {$bits(address_exception_t){ibus_valid}};
     end
 end
