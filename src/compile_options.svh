@@ -23,6 +23,8 @@
 `endif
 
 // can change value
+// num of inst channel
+`define N_INST_CHANNEL  2
 // num of tlb entries
 `define N_TLB_ENTRIES   32
 // num of regs in rf
