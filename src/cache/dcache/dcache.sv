@@ -156,7 +156,7 @@ assign stage1_wb_query_wrdata = pipe0_req.wrdata;
 assign stage1_wb_query_wbe    = dbus.dcache_req.be;
 assign stage1_wb_query_label  = get_label(dbus.dcache_req.paddr);
 // not always write, only hit & non_pop can write, if cache hit both write
-assign stage1_wb_write        = pipe0_req.write & (stage1_wb_query_found & ~stage1_wb_query_on_pop) & ~dbus.dcache_req.cancel;
+assign stage1_wb_write        = pipe0_req.write & (stage1_wb_query_found & ~stage1_wb_query_on_pop);
 // check cache_miss
 // hit from rddata
 for (genvar i = 0; i < SET_ASSOC; ++i) begin : gen_dcache_hit_rd
@@ -209,8 +209,6 @@ always_comb begin
             if (dbus.dcache_req.uncached && (stage1_dp_push && pipe0_dp_full)) stage1_state_n = DCACHE_WAIT_UNCACHED;
             // inv dcache
             if (pipe0_req.inv) stage1_state_n = DCACHE_INVALIDATING;
-            // cancel
-            if (dbus.dcache_req.cancel) stage1_state_n = DCACHE_IDLE;
         end
         DCACHE_FETCH: begin
             // fetch complete && wb_line pused
@@ -266,7 +264,7 @@ always_comb begin
     stage1_dp_req.paddr = dbus.dcache_req.paddr;
 end
 // when waiting uncached load to execute, cannot issue push
-assign stage1_dp_push = (pipe0_req.read | pipe0_req.write) & dbus.dcache_req.uncached & (stage1_state != DCACHE_UNCACHED_LOAD) & ~dbus.dcache_req.cancel;
+assign stage1_dp_push = (pipe0_req.read | pipe0_req.write) & dbus.dcache_req.uncached & (stage1_state != DCACHE_UNCACHED_LOAD);
 // ram req for tag
 assign stage1_tag_wrdata.dirty = pipe0_req.write;
 assign stage1_tag_wrdata.valid = (stage1_state != DCACHE_INVALIDATING) && (stage1_state != DCACHE_RESET);
@@ -318,7 +316,7 @@ always_comb begin
 end
 // when stall pipeline, record stage1_tag_mux && stage1_need_push
 always_ff @ (posedge clk) begin
-    if (rst | dbus.dcache_req.cancel) begin
+    if (rst) begin
         stage1_tag_rddata <= '0;
         stage1_need_push  <= 1'b0;
     end else begin
@@ -375,7 +373,7 @@ always_comb begin
             end
             // normal write
             if (|stage1_hit && pipe0_req.write) begin
-                stage1_tag_we      = stage1_hit & {SET_ASSOC{~dbus.dcache_req.cancel}};
+                stage1_tag_we      = stage1_hit;
                 stage1_tag_waddr   = get_index(pipe0_req.vaddr);
             end
         end
@@ -443,8 +441,6 @@ always_comb begin
     pipe1_req_n       = pipe0_req;
     pipe1_req_n.be    = dbus.dcache_req.be;
     pipe1_req_n.paddr = dbus.dcache_req.paddr;
-    // cancel write
-    pipe1_req_n.write &= ~dbus.dcache_req.cancel;
     // cache miss, but wb hit & can write, no need write cache
     if (~|stage1_hit && stage1_wb_write) begin
         pipe1_req_n.write = 1'b0;
