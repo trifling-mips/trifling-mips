@@ -24,6 +24,9 @@ assign fs = inst[15:11];
 assign fd = inst[10:6];
 `endif
 
+// set inst
+assign decoder_resp.inst = inst;
+
 // set default jump & branch target
 virt_t pc_plus4;
 assign pc_plus4 = vaddr + 32'd4;
