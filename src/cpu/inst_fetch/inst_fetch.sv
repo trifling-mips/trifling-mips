@@ -2,8 +2,9 @@
 `include "inst_fetch.svh"
 
 module inst_fetch #(
-    parameter   BOOT_VEC    =   32'hbfc00000,
-    parameter   N_ISSUE     =   1
+    parameter   BOOT_VEC        =   32'hbfc00000,
+    parameter   N_ISSUE         =   1,
+    parameter   N_INST_CHANNEL  =   2
 ) (
     // external signals
     input   logic   clk,
@@ -20,18 +21,17 @@ module inst_fetch #(
     // output
     output  virt_t  pc,
     // mmu iaddt resp
-    input   mmu_resp_t  mmu_iaddr_resp,
+    input   mmu_resp_t [N_INST_CHANNEL - 1:0]   mmu_iaddr_resp,
     // icache resp
     input   logic       ibus_valid,
     // inst_fetch pipe
     output  pipe_if_t   pipe_if
 );
 
-logic update, branch_flow, branch_stall, pipe_if_flush;
-assign branch_flow = (resolved_branch.taken && ibus_valid);
-assign branch_stall= (resolved_branch.taken && ~ibus_valid);
-assign pipe_if_flush = except_req.valid | branch_flow;
-assign update = (ibus_ready & ready_i) | pipe_if_flush;
+logic update, branch_flow, pipe_if_flush;
+assign branch_flow = (resolved_branch.taken && resolved_branch.valid) && ibus_valid;
+assign pipe_if_flush = except_req.valid || branch_flow;
+assign update = (ibus_ready && ready_i) || pipe_if_flush;
 // inst pc_generator
 pc_generator #(
     .BOOT_VEC(BOOT_VEC),
@@ -42,18 +42,25 @@ pc_generator #(
 
 // address_exception
 address_exception_t address_exception;
-assign address_exception.illegal = mmu_iaddr_resp.illegal;
-assign address_exception.miss    = mmu_iaddr_resp.miss;
-assign address_exception.invalid = mmu_iaddr_resp.inv;
+assign address_exception.illegal = mmu_iaddr_resp[0].illegal;
+assign address_exception.miss    = mmu_iaddr_resp[0].miss;
+assign address_exception.invalid = mmu_iaddr_resp[0].inv;
+// set pipe_if_n
+pipe_if_t pipe_if_n;
+always_comb begin
+    // default
+    pipe_if_n = pipe_if;
+    // set new value
+    pipe_if_n.valid          = 1'b1;
+    pipe_if_n.mmu_iaddr_resp = mmu_iaddr_resp;
+    pipe_if_n.iaddr_ex       = address_exception;
+end
 // pipe if
 always_ff @ (posedge clk) begin
-    if (rst | pipe_if_flush) begin
-        pipe_if       <= '0;
-    end else if (ready_i | branch_stall) begin
-        pipe_if.vaddr <= pc;
-        pipe_if.paddr <= mmu_iaddr_resp.paddr;
-        pipe_if.valid <= 1'b1;
-        pipe_if.iaddr_ex <= address_exception & {$bits(address_exception_t){ibus_valid}};
+    if (rst || pipe_if_flush) begin
+        pipe_if <= '0;
+    end else if (ready_i && ibus_ready) begin
+        pipe_if <= pipe_if_n;
     end
 end
 

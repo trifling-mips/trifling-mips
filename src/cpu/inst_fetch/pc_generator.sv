@@ -26,8 +26,8 @@ always_comb begin
     pc_n = pc;
     // default
     pc_n = {pc[$bits(virt_t) - 1:LBITS_PC] + 1, {LBITS_PC{1'b0}}};
-    // branch resolved, temp unuse resolved_branch.valid(always not taken)
-    if (resolved_branch.taken) pc_n = resolved_branch.target;
+    // branch resolved, use resolved_branch.valid(always not taken)
+    if (resolved_branch.taken && resolved_branch.valid) pc_n = resolved_branch.target;
     // except
     if (except_req.valid) pc_n = except_req.except_vec;
 end
