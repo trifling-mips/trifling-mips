@@ -347,9 +347,9 @@ assign ibus.paddr_plus1 = if_pipe_if.mmu_iaddr_resp[1].paddr;
 assign dbus.dcache_req.vaddr    = id_pipe_id.dcache_req.vaddr;
 assign dbus.dcache_req.be       = ex_pipe_ex.dcache_req.be;
 assign dbus.dcache_req.wrdata   = id_pipe_id.dcache_req.wrdata;
-assign dbus.dcache_req.read     = id_pipe_id.dcache_req.read & wb_ready_o;
-assign dbus.dcache_req.write    = id_pipe_id.dcache_req.write & wb_ready_o;
-assign dbus.dcache_req.inv      = id_pipe_id.dcache_req.inv & wb_ready_o;
+assign dbus.dcache_req.read     = (id_pipe_id.dcache_req.read && id_pipe_id.valid && ~ex_except_req.valid) && wb_ready_o;
+assign dbus.dcache_req.write    = (id_pipe_id.dcache_req.write && id_pipe_id.valid && ~ex_except_req.valid) && wb_ready_o;
+assign dbus.dcache_req.inv      = (id_pipe_id.dcache_req.inv && id_pipe_id.valid && ~ex_except_req.valid) && wb_ready_o;
 assign dbus.dcache_req.paddr    = ex_pipe_ex.dcache_req.paddr;
 assign dbus.dcache_req.uncached = ex_pipe_ex.dcache_req.uncached;
 // set debug_req
