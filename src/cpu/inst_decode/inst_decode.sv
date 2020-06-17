@@ -137,7 +137,7 @@ resolve_delayslot #(
     .resolved_delayslot(rd_resolved_delayslot)
 );
 assign rd_flush = pipe_id_flush;
-assign rd_stall = ~ready_i || ~pipe_if.valid;
+assign rd_stall = ~ready_i || ~ibus_valid;
 // need to be modified
 assign rd_pipe_id[0] = pipe_id_n;
 for (genvar i = 1; i < N_ISSUE; ++i)

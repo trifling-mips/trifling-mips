@@ -35,7 +35,7 @@ always_comb begin
     // gen stall_o
     for (int i = 0; i < READ_PORTS; ++i)
         for (int j = 0; j < WRITE_PORTS; ++j)
-            if (pipe_ex.dcache_req.read && pipe_ex.regs_wreq.waddr == regs_raddr_i[i])
+            if ((pipe_ex.dcache_req.read && pipe_ex.valid) && pipe_ex.regs_wreq.waddr == regs_raddr_i[i])  // && |pipe_ex.regs_wreq.waddr)
                 stall_o = 1'b1;
 end
 
