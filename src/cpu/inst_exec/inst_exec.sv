@@ -87,7 +87,8 @@ assign clz_cnt = '0;
 assign hilo_we    = (
     op == OP_MADD || op == OP_MADDU || op == OP_MSUB || op == OP_MSUBU
     || op == OP_MULT || op == OP_MULTU || op == OP_DIV || op == OP_DIVU
-    || op == OP_MTHI || op == OP_MTLO);
+    || op == OP_MTHI || op == OP_MTLO
+) && pipe_id.valid;
 assign hilo_wrdata = multicyc_resp.hilo;
 
 // setup execution result
