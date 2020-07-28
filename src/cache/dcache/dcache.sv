@@ -108,6 +108,8 @@ logic [LINE_WIDTH / DATA_WIDTH - 1:0][DATA_WIDTH - 1:0] stage1_line_recv, stage1
 // stage 1 resp
 dcache_resp_t stage1_resp, stage1_dp_resp;
 // pipe 1(tag update)
+// dcache_resp
+dcache_resp_t pipe1_dcache_resp, pipe1_dcache_resp_n;
 // forward stage1_tag_wdata
 tag_t pipe1_tag_wrdata;
 logic [SET_ASSOC - 1:0] pipe1_tag_we;
@@ -480,10 +482,17 @@ end
 // stage 1 resp
 assign stage1_resp.rddata = stage1_data_mux[get_offset(pipe0_req.vaddr)];
 assign stage1_resp.valid  = dbus.ready & pipe0_req.read;
+// set pipe1_dcache_resp_n
+assign pipe1_dcache_resp_n = dbus.dcache_req.uncached ? stage1_dp_resp : stage1_resp;
+// update pipe1_dcache_resp
+always_ff @ (posedge clk) begin
+    if (rst)    pipe1_dcache_resp <= '0;
+    else        pipe1_dcache_resp <= pipe1_dcache_resp_n;
+end
 // dbus control signals
 assign dbus.ready = stage1_state_n == DCACHE_IDLE;
 // dbus resp signals
-assign dbus.dcache_resp = dbus.dcache_req.uncached ? stage1_dp_resp : stage1_resp;
+assign dbus.dcache_resp = pipe1_dcache_resp;
 
 // stage 1 stream_buffer for cache_prefetch
 // for data_vld will delay one period, maybe try to modify it.
