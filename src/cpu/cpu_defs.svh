@@ -372,6 +372,17 @@ typedef struct packed {
 } pipe_ex_t;
 typedef struct packed {
     logic valid;
+    // pipe_if signals
+    pipe_if_t inst_fetch;
+    // regs write req (only one write port for each pipe_wb)
+    regs_wreq_t regs_wreq;
+    // dcache_req_t
+    dcache_req_t dcache_req;
+    // inst decode
+    decoder_resp_t decode_resp;
+} pipe_mm_t;
+typedef struct packed {
+    logic valid;
     // regs write req (only one write port for each pipe_wb)
     regs_wreq_t regs_wreq;
     // for debug

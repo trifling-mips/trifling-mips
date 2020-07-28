@@ -180,7 +180,7 @@ end
 /* exception */
 logic trap_valid, daddr_unaligned, invalid_inst;
 virt_t mmu_vaddr;
-assign mmu_vaddr = pipe_id.dcache_req.vaddr;
+assign mmu_vaddr = pipe_ex_n.dcache_req.vaddr;
 always_comb begin
     `ifdef COMPILE_FULL_M
     unique case (op)
@@ -301,7 +301,7 @@ always_comb begin
             default:;
         endcase
     end else if (|ex_mm) begin
-        ex.extra = pipe_id.dcache_req.vaddr;
+        ex.extra = pipe_ex_n.dcache_req.vaddr;
         unique casez (ex_mm)
             5'b1????: ex.exc_code = EXCCODE_ADEL;
             5'b01???: ex.exc_code = EXCCODE_ADES;
@@ -341,6 +341,8 @@ always_comb begin
     // default
     pipe_ex_n.dcache_req = pipe_id.dcache_req;
 
+    // set dcache_req.vaddr
+    pipe_ex_n.dcache_req.vaddr = pipe_id.regs_rddata0 + {{16{pipe_id.decode_resp.inst[15]}}, pipe_id.decode_resp.inst[15:0]};
     // set dcache_req.paddr
     pipe_ex_n.dcache_req.paddr = mmu_daddr_resp.paddr;
     // set dcache_req.uncached
@@ -349,13 +351,13 @@ always_comb begin
     unique case (pipe_id.decode_resp.op)
         OP_LW, OP_SW: pipe_ex_n.dcache_req.be = '1;
         OP_LH, OP_LHU, OP_SH: 
-            unique case (pipe_id.dcache_req.vaddr[1:0])
+            unique case (pipe_ex_n.dcache_req.vaddr[1:0])
                 2'b00: pipe_ex_n.dcache_req.be = 4'b0011;
                 2'b10: pipe_ex_n.dcache_req.be = 4'b1100;
                 default: pipe_ex_n.dcache_req.be = '0;
             endcase
         OP_LB, OP_LBU, OP_SB:
-            unique case (pipe_id.dcache_req.vaddr[1:0])
+            unique case (pipe_ex_n.dcache_req.vaddr[1:0])
                 2'b00: pipe_ex_n.dcache_req.be = 4'b0001;
                 2'b01: pipe_ex_n.dcache_req.be = 4'b0010;
                 2'b10: pipe_ex_n.dcache_req.be = 4'b0100;

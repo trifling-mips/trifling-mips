@@ -25,8 +25,9 @@ module inst_decode #(
     // pipe_id
     output  pipe_id_t   pipe_id_n,      // not sync
     output  pipe_id_t   pipe_id,
-    // pipe_ex & pipe_wb (not sync)
+    // pipe_ex & pipe_mm & pipe_wb (not sync)
     input   pipe_ex_t   pipe_ex,
+    input   pipe_mm_t   pipe_mm,
     input   pipe_wb_t   pipe_wb
 );
 
@@ -111,6 +112,7 @@ regs_forward #(
     .regs_rddata_i,
     // data from exe (not sync)
     .pipe_ex,
+    .pipe_mm,
     .pipe_wb,
     // output
     .regs_rddata_o,
@@ -157,7 +159,7 @@ assign pipe_id_n.decode_resp        = decoder_resp;
 // need to be modified
 assign pipe_id_n.delayslot          = rd_resolved_delayslot[0];
 assign pipe_id_n.inst_fetch         = pipe_if;
-assign pipe_id_n.dcache_req.vaddr   = regs_rddata_o[0] + {{16{inst[15]}}, inst[15:0]};
+assign pipe_id_n.dcache_req.vaddr   = '0;
 assign pipe_id_n.dcache_req.paddr   = '0;
 // need to be modified
 assign pipe_id_n.dcache_req.be      = '0;

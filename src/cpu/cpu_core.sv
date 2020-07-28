@@ -43,6 +43,7 @@ except_req_t id_except_req;
 pipe_if_t id_pipe_if;
 pipe_id_t id_pipe_id, id_pipe_id_n;
 pipe_ex_t id_pipe_ex;
+pipe_mm_t id_pipe_mm;
 pipe_wb_t id_pipe_wb;
 // define interface for mmu
 logic[7:0] mmu_asid;
@@ -86,11 +87,15 @@ uint32_t ex_cp0_rddata;
 pipe_id_t ex_pipe_id;
 pipe_ex_t ex_pipe_ex_n, ex_pipe_ex;
 mmu_resp_t ex_mmu_daddr_resp;
+// define interface for inst_mem
+logic mm_dbus_ready;
+logic mm_ready_i, mm_ready_o;
+pipe_ex_t mm_pipe_ex;
+pipe_mm_t mm_pipe_mm, mm_pipe_mm_n;
 // define interface for inst_wb
-logic wb_dbus_ready;
 dcache_resp_t wb_dcache_resp;
 logic wb_ready_i, wb_ready_o;
-pipe_ex_t wb_pipe_ex;
+pipe_mm_t wb_pipe_mm;
 pipe_wb_t wb_pipe_wb_n, wb_pipe_wb;
 
 // inner signals
@@ -165,6 +170,7 @@ inst_decode #(
     .pipe_id        ( id_pipe_id        ),
     // pipe_ex & pipe_wb (not sync)
     .pipe_ex        ( id_pipe_ex        ),
+    .pipe_mm        ( id_pipe_mm        ),
     .pipe_wb        ( id_pipe_wb        )
 );
 assign id_ibus_valid    = ibus.valid;
@@ -173,6 +179,7 @@ assign id_ready_i       = ex_ready_o;
 assign id_except_req    = except_except_req;
 assign id_pipe_if       = if_pipe_if;
 assign id_pipe_ex       = ex_pipe_ex_n;
+assign id_pipe_mm       = mm_pipe_mm_n;
 assign id_pipe_wb       = wb_pipe_wb_n;
 
 // inst mmu
@@ -209,7 +216,7 @@ assign mmu_kseg0_uncached   = cp0_kseg0_uncached;
 assign mmu_is_user_mode     = cp0_user_mode;
 assign mmu_inst_vaddr[0]    = if_pc;
 assign mmu_inst_vaddr[1]    = if_pc + (1 << $clog2(LINE_WIDTH / 8));
-assign mmu_data_vaddr[0]    = id_pipe_id.dcache_req.vaddr;
+assign mmu_data_vaddr[0]    = ex_pipe_ex_n.dcache_req.vaddr;
 // tlb signals (temp unused)
 assign mmu_tlbrw_index      = '0;
 assign mmu_tlbrw_we         = 1'b0;
@@ -305,11 +312,33 @@ inst_exec #(
     .mmu_daddr_resp ( ex_mmu_daddr_resp )
 );
 assign ex_ibus_valid    = ibus.valid;
-assign ex_ready_i       = wb_ready_o;
+assign ex_ready_i       = mm_ready_o;
 assign ex_except_req    = except_except_req;
 assign ex_cp0_rddata    = cp0_cp0_rddata;
 assign ex_pipe_id       = id_pipe_id;
 assign ex_mmu_daddr_resp= mmu_data_resp[0];
+
+// inst inst_mem
+inst_mem #(
+
+) inst_mem_inst (
+    // external signals
+    .clk,
+    .rst,
+    // ready from dbus
+    .dbus_ready     ( mm_dbus_ready ),
+    // ready
+    .ready_i        ( mm_ready_i    ),
+    .ready_o        ( mm_ready_o    ),
+    // pipe_ex
+    .pipe_ex        ( mm_pipe_ex    ),
+    // pipe_mm
+    .pipe_mm_n      ( mm_pipe_mm_n  ),
+    .pipe_mm        ( mm_pipe_mm    )
+);
+assign mm_dbus_ready    = dbus.ready;
+assign mm_ready_i       = wb_ready_o;
+assign mm_pipe_ex       = ex_pipe_ex;
 
 // inst inst_wb
 inst_wb #(
@@ -318,23 +347,20 @@ inst_wb #(
     // external signals
     .clk,
     .rst,
-    // ready from dbus
-    .dbus_ready     ( wb_dbus_ready     ),
     // dcache_resp
     .dcache_resp    ( wb_dcache_resp    ),
     // ready
     .ready_i        ( wb_ready_i        ),    // cons 1'b1
     .ready_o        ( wb_ready_o        ),
-    // pipe_ex
-    .pipe_ex        ( wb_pipe_ex        ),
+    // pipe_mm
+    .pipe_mm        ( wb_pipe_mm        ),
     // pipe_wb
     .pipe_wb_n      ( wb_pipe_wb_n      ),
     .pipe_wb        ( wb_pipe_wb        )
 );
-assign wb_dbus_ready    = dbus.ready;
 assign wb_dcache_resp   = dbus.dcache_resp;
 assign wb_ready_i       = 1'b1;
-assign wb_pipe_ex       = ex_pipe_ex;
+assign wb_pipe_mm       = mm_pipe_mm;
 
 // set ibus
 assign ibus.read        = 1'b1;
@@ -344,7 +370,7 @@ assign ibus.vaddr       = if_pc;
 assign ibus.paddr       = if_pipe_if.mmu_iaddr_resp[0].paddr;
 assign ibus.paddr_plus1 = if_pipe_if.mmu_iaddr_resp[1].paddr;
 // set dbus
-assign dbus.dcache_req.vaddr    = id_pipe_id.dcache_req.vaddr;
+assign dbus.dcache_req.vaddr    = ex_pipe_ex_n.dcache_req.vaddr;
 assign dbus.dcache_req.be       = ex_pipe_ex.dcache_req.be;
 assign dbus.dcache_req.wrdata   = id_pipe_id.dcache_req.wrdata;
 assign dbus.dcache_req.read     = (id_pipe_id.dcache_req.read && id_pipe_id.valid && ~ex_except_req.valid) && wb_ready_o;
