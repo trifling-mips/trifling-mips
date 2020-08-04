@@ -1,0 +1,11 @@
+# dir
+/include
+/bench
+/lib
+
+# file
+*.S
+*.make
+*.txt
+Makefile
+*.c

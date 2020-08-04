@@ -1,0 +1,9 @@
+# dir
+
+# file
+*.s
+*.elf
+*.data
+*.bin
+*.mif
+data_ram.coe

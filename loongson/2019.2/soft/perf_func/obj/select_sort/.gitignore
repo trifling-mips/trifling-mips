@@ -1,0 +1,8 @@
+# dir
+
+# file
+*.s
+*.elf
+*.data
+*.bin
+*.mif

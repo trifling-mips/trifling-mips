@@ -1,0 +1,19 @@
+# dir
+/doc
+/hdl
+/misc
+/sim
+/simulation
+/synth
+
+# file
+*.dcp
+*.v
+*.veo
+*.vho
+*.mif
+*.xdc
+*.xml
+*.vhdl
+*.vh
+*.log

@@ -1,0 +1,9 @@
+# ignore all gs132 sources, make loongson happy
+# dir
+/rtl
+/run_vivado
+/testbench
+
+# file
+*.v
+*.h

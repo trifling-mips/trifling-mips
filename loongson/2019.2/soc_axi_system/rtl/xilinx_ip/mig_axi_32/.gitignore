@@ -1,0 +1,24 @@
+# dir
+/doc
+/hdl
+/misc
+/sim
+/simulation
+/synth
+/_tmp
+/mig_axi_32
+
+# file
+*.dcp
+*.v
+*.veo
+*.vho
+*.mif
+*.xdc
+*.xml
+*.vhdl
+*.vh
+*.log
+*.tcl
+*.in
+*.out

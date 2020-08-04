@@ -1,0 +1,11 @@
+# dir
+/include
+/lib
+/memory_game
+
+# file
+*.S
+*.make
+*.txt
+Makefile
+*.c

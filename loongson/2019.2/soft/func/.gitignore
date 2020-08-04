@@ -1,0 +1,10 @@
+# dir
+/include
+/inst
+
+# file
+*.S
+*.make
+*.txt
+Makefile
+*.c
