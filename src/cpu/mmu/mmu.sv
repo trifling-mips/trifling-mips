@@ -102,6 +102,9 @@ end else begin : gen_mmu_disabled_code
             data_resp[i].vaddr    = data_vaddr[i];
         end
     end
+    // set output
+    assign tlbrw_rddata = '0;
+    assign tlbp_index = '0;
 end endgenerate
 
 endmodule

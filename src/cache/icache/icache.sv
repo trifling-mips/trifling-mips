@@ -206,6 +206,7 @@ always_comb begin
     stage1_tag_we    = '0;
     stage1_tag_waddr = get_index(ibus.vaddr) + 1;        // fetch line_plus1
     stage1_data_we   = '0;
+    stage1_data_waddr = '0;
     // when ~sb_written & all line_data valid & sb_hit at least once
     // must ~pipe0_inv can we set sb_write as 1
     stage1_sb_write  = ~pipe0_sb_written & (&pipe0_sb_line_vld) & (pipe0_sb_was_hit | stage1_sb_hit) & ~pipe0_inv;

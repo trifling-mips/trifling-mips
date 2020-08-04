@@ -57,6 +57,10 @@ icache #(
     // AXI3 signals
     .axi3_rd_if ( axi3_rd_if_icached    )
 );
+// set axi3_wr_if_icached
+assign axi3_wr_if_icached.wid         = '0;
+assign axi3_wr_if_icached.awid        = '0;
+assign axi3_wr_if_icached.axi3_wr_req = '0;
 
 // dcache inst
 dcache #(
