@@ -107,13 +107,13 @@ always_comb begin
         OP_SUB, OP_SUBU: exec_ret = sub_u;
 
         `ifdef COMPILE_FULL_M
-        /* bits counting */
+        // bits counting
         OP_CLZ: exec_ret = clz_cnt;
         OP_CLO: exec_ret = clo_cnt;
         `endif
 
         `ifdef COMPILE_FULL_M
-        /* move instructions */
+        // move instructions
         `ifdef FPU_ENABLED
             OP_MOVCI,
         `endif
@@ -123,7 +123,7 @@ always_comb begin
         OP_MFLO: exec_ret = hilo_rddata[31:0];
 
         `ifdef COMPILE_FULL_M
-        /* multi-cycle */
+        // multi-cycle
         OP_MUL: exec_ret = multicyc_reg;
         `endif
 
@@ -144,7 +144,7 @@ always_comb begin
         OP_SLT:  exec_ret = { 30'b0, signed_lt   };
 
         `ifdef COMPILE_FULL_M
-        /* conditional store */
+        // conditional store
         OP_SC:   exec_ret = llbit_value;
         `endif
 
@@ -228,9 +228,9 @@ assign ex_ex = {
     op == OP_SYSCALL,
     ((op == OP_ADD) & ov_add) | ((op == OP_SUB) & ov_sub),
     `ifdef COMPILE_FULL_M
-    data.decoded.is_priv & is_usermode
+     data.decoded.is_priv & is_usermode
     `ifdef FPU_ENABLED
-    | pipe_id.decode_resp.is_fpu & ~fpu_valid
+     | pipe_id.decode_resp.is_fpu & ~fpu_valid
     `endif
     `else
     1'b0

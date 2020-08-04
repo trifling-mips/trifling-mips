@@ -2,8 +2,7 @@
 `include "inst_wb.svh"
 
 module inst_wb #(
-    // local parameter
-    localparam  DATA_WIDTH      = $bits(uint32_t)
+
 ) (
     // external signals
     input   logic   clk,
@@ -19,6 +18,9 @@ module inst_wb #(
     output  pipe_wb_t   pipe_wb_n,
     output  pipe_wb_t   pipe_wb
 );
+
+// local parameter
+localparam DATA_WIDTH = $bits(uint32_t);
 
 // define funcs
 `DEF_FUNC_LOAD_SEL

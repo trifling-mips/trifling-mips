@@ -44,7 +44,7 @@ generate if (MMU_ENABLED) begin : gen_mmu_enabled_code
 
     for (genvar i = 0; i < N_INST_CHANNEL; ++i) begin : gen_inst_resp
         assign inst_mapped[i]        = is_vaddr_mapped(inst_vaddr[i]);
-        assign inst_resp[i].miss     = (inst_mapped[i] & inst_tlb_result.miss);
+        assign inst_resp[i].miss     = (inst_mapped[i] & inst_tlb_resp.miss);
         assign inst_resp[i].illegal  = (is_user_mode & inst_vaddr[i][31]);
         assign inst_resp[i].inv      = (inst_mapped[i] & ~inst_tlb_resp.valid);
         assign inst_resp[i].uncached = is_vaddr_uncached(inst_vaddr[i], kseg0_uncached);

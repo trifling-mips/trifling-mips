@@ -2,9 +2,7 @@
 `include "multicyc_exec.svh"
 
 module multicyc_exec #(
-    // local parameter
-    localparam int DIV_CYC = 36,
-    localparam int MUL_CYC = 1
+
 ) (
     // external signals
     input   logic   clk,
@@ -13,6 +11,10 @@ module multicyc_exec #(
     input   multicyc_req_t  multicyc_req,
     output  multicyc_resp_t multicyc_resp
 );
+
+// local parameter
+localparam int DIV_CYC = 36;
+localparam int MUL_CYC = 1;
 
 // record multicyc_req
 multicyc_req_t pipe_multicyc_req;
