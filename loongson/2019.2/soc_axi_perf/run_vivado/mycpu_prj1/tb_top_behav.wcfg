@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_top_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="\$unit_branch_resolver_sv " />
+            <top_module name="glbl" />
+            <top_module name="tb_top" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="73101fs"></ZoomEndTime>
+      <Cursor1Time time="0fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="175"></NameColumnWidth>
+      <ValueColumnWidth column_width="139"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="42" />
+   <wvobject fp_name="/tb_top/resetn" type="logic">
+      <obj_property name="ElementShortName">resetn</obj_property>
+      <obj_property name="ObjectShortName">resetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/led" type="array">
+      <obj_property name="ElementShortName">led[15:0]</obj_property>
+      <obj_property name="ObjectShortName">led[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/led_rg0" type="array">
+      <obj_property name="ElementShortName">led_rg0[1:0]</obj_property>
+      <obj_property name="ObjectShortName">led_rg0[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/led_rg1" type="array">
+      <obj_property name="ElementShortName">led_rg1[1:0]</obj_property>
+      <obj_property name="ObjectShortName">led_rg1[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/num_csn" type="array">
+      <obj_property name="ElementShortName">num_csn[7:0]</obj_property>
+      <obj_property name="ObjectShortName">num_csn[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/num_a_g" type="array">
+      <obj_property name="ElementShortName">num_a_g[6:0]</obj_property>
+      <obj_property name="ObjectShortName">num_a_g[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/switch" type="array">
+      <obj_property name="ElementShortName">switch[7:0]</obj_property>
+      <obj_property name="ObjectShortName">switch[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/btn_key_col" type="array">
+      <obj_property name="ElementShortName">btn_key_col[3:0]</obj_property>
+      <obj_property name="ObjectShortName">btn_key_col[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/btn_key_row" type="array">
+      <obj_property name="ElementShortName">btn_key_row[3:0]</obj_property>
+      <obj_property name="ObjectShortName">btn_key_row[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/btn_step" type="array">
+      <obj_property name="ElementShortName">btn_step[1:0]</obj_property>
+      <obj_property name="ObjectShortName">btn_step[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/debug_wb_pc" type="array">
+      <obj_property name="ElementShortName">debug_wb_pc[31:0]</obj_property>
+      <obj_property name="ObjectShortName">debug_wb_pc[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/debug_wb_rf_wen" type="array">
+      <obj_property name="ElementShortName">debug_wb_rf_wen[3:0]</obj_property>
+      <obj_property name="ObjectShortName">debug_wb_rf_wen[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/debug_wb_rf_wnum" type="array">
+      <obj_property name="ElementShortName">debug_wb_rf_wnum[4:0]</obj_property>
+      <obj_property name="ObjectShortName">debug_wb_rf_wnum[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/debug_wb_rf_wdata" type="array">
+      <obj_property name="ElementShortName">debug_wb_rf_wdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">debug_wb_rf_wdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/trace_ref" type="array">
+      <obj_property name="ElementShortName">trace_ref[31:0]</obj_property>
+      <obj_property name="ObjectShortName">trace_ref[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/debug_end" type="logic">
+      <obj_property name="ElementShortName">debug_end</obj_property>
+      <obj_property name="ObjectShortName">debug_end</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/debug_wb_rf_wdata_v" type="array">
+      <obj_property name="ElementShortName">debug_wb_rf_wdata_v[31:0]</obj_property>
+      <obj_property name="ObjectShortName">debug_wb_rf_wdata_v[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/err_count" type="array">
+      <obj_property name="ElementShortName">err_count[7:0]</obj_property>
+      <obj_property name="ObjectShortName">err_count[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/confreg_num_reg" type="array">
+      <obj_property name="ElementShortName">confreg_num_reg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">confreg_num_reg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/confreg_num_reg_r" type="array">
+      <obj_property name="ElementShortName">confreg_num_reg_r[31:0]</obj_property>
+      <obj_property name="ObjectShortName">confreg_num_reg_r[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/uart_display" type="logic">
+      <obj_property name="ElementShortName">uart_display</obj_property>
+      <obj_property name="ObjectShortName">uart_display</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/uart_data" type="array">
+      <obj_property name="ElementShortName">uart_data[7:0]</obj_property>
+      <obj_property name="ObjectShortName">uart_data[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/test_end" type="logic">
+      <obj_property name="ElementShortName">test_end</obj_property>
+      <obj_property name="ObjectShortName">test_end</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_fetch_inst/pipe_if" type="array">
+      <obj_property name="ElementShortName">pipe_if</obj_property>
+      <obj_property name="ObjectShortName">pipe_if</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_fetch_inst/pipe_if_n" type="array">
+      <obj_property name="ElementShortName">pipe_if_n</obj_property>
+      <obj_property name="ObjectShortName">pipe_if_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id_n" type="array">
+      <obj_property name="ElementShortName">pipe_id_n</obj_property>
+      <obj_property name="ObjectShortName">pipe_id_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id" type="array">
+      <obj_property name="ElementShortName">pipe_id</obj_property>
+      <obj_property name="ObjectShortName">pipe_id</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.valid" type="logic">
+         <obj_property name="ElementShortName">.valid</obj_property>
+         <obj_property name="ObjectShortName">.valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.inst_fetch" type="array">
+         <obj_property name="ElementShortName">.inst_fetch</obj_property>
+         <obj_property name="ObjectShortName">.inst_fetch</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.inst_fetch.valid" type="logic">
+            <obj_property name="ElementShortName">.valid</obj_property>
+            <obj_property name="ObjectShortName">.valid</obj_property>
+         </wvobject>
+         <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.inst_fetch.mmu_iaddr_resp" type="array">
+            <obj_property name="ElementShortName">.mmu_iaddr_resp[1:0]</obj_property>
+            <obj_property name="ObjectShortName">.mmu_iaddr_resp[1:0]</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.inst_fetch.mmu_iaddr_resp[1]" type="array">
+               <obj_property name="ElementShortName">[1]</obj_property>
+               <obj_property name="ObjectShortName">[1]</obj_property>
+            </wvobject>
+            <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.inst_fetch.mmu_iaddr_resp[0]" type="array">
+               <obj_property name="ElementShortName">[0]</obj_property>
+               <obj_property name="ObjectShortName">[0]</obj_property>
+               <obj_property name="isExpanded"></obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.inst_fetch.iaddr_ex" type="array">
+            <obj_property name="ElementShortName">.iaddr_ex</obj_property>
+            <obj_property name="ObjectShortName">.iaddr_ex</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.decode_resp" type="array">
+         <obj_property name="ElementShortName">.decode_resp</obj_property>
+         <obj_property name="ObjectShortName">.decode_resp</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.delayslot" type="logic">
+         <obj_property name="ElementShortName">.delayslot</obj_property>
+         <obj_property name="ObjectShortName">.delayslot</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.cp0_rreq" type="array">
+         <obj_property name="ElementShortName">.cp0_rreq</obj_property>
+         <obj_property name="ObjectShortName">.cp0_rreq</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.dcache_req" type="array">
+         <obj_property name="ElementShortName">.dcache_req</obj_property>
+         <obj_property name="ObjectShortName">.dcache_req</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.regs_rddata0" type="array">
+         <obj_property name="ElementShortName">.regs_rddata0[31:0]</obj_property>
+         <obj_property name="ObjectShortName">.regs_rddata0[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_decode_inst/pipe_id.regs_rddata1" type="array">
+         <obj_property name="ElementShortName">.regs_rddata1[31:0]</obj_property>
+         <obj_property name="ObjectShortName">.regs_rddata1[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex_n" type="array">
+      <obj_property name="ElementShortName">pipe_ex_n</obj_property>
+      <obj_property name="ObjectShortName">pipe_ex_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex" type="array">
+      <obj_property name="ElementShortName">pipe_ex</obj_property>
+      <obj_property name="ObjectShortName">pipe_ex</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.valid" type="logic">
+         <obj_property name="ElementShortName">.valid</obj_property>
+         <obj_property name="ObjectShortName">.valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.inst_fetch" type="array">
+         <obj_property name="ElementShortName">.inst_fetch</obj_property>
+         <obj_property name="ObjectShortName">.inst_fetch</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.cp0_wreq" type="array">
+         <obj_property name="ElementShortName">.cp0_wreq</obj_property>
+         <obj_property name="ObjectShortName">.cp0_wreq</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.exception" type="array">
+         <obj_property name="ElementShortName">.exception</obj_property>
+         <obj_property name="ObjectShortName">.exception</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.resolved_branch" type="array">
+         <obj_property name="ElementShortName">.resolved_branch</obj_property>
+         <obj_property name="ObjectShortName">.resolved_branch</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.regs_wreq" type="array">
+         <obj_property name="ElementShortName">.regs_wreq</obj_property>
+         <obj_property name="ObjectShortName">.regs_wreq</obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.dcache_req" type="array">
+         <obj_property name="ElementShortName">.dcache_req</obj_property>
+         <obj_property name="ObjectShortName">.dcache_req</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+      </wvobject>
+      <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_exec_inst/pipe_ex.decode_resp" type="array">
+         <obj_property name="ElementShortName">.decode_resp</obj_property>
+         <obj_property name="ObjectShortName">.decode_resp</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_mem_inst/pipe_mm_n" type="array">
+      <obj_property name="ElementShortName">pipe_mm_n</obj_property>
+      <obj_property name="ObjectShortName">pipe_mm_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_mem_inst/pipe_mm" type="array">
+      <obj_property name="ElementShortName">pipe_mm</obj_property>
+      <obj_property name="ObjectShortName">pipe_mm</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_wb_inst/pipe_wb_n" type="array">
+      <obj_property name="ElementShortName">pipe_wb_n</obj_property>
+      <obj_property name="ObjectShortName">pipe_wb_n</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cpu_core_inst/inst_wb_inst/pipe_wb" type="array">
+      <obj_property name="ElementShortName">pipe_wb</obj_property>
+      <obj_property name="ObjectShortName">pipe_wb</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dbus/ready" type="logic">
+      <obj_property name="ElementShortName">ready</obj_property>
+      <obj_property name="ObjectShortName">ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dbus/dcache_req" type="array">
+      <obj_property name="ElementShortName">dcache_req</obj_property>
+      <obj_property name="ObjectShortName">dcache_req</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dbus/dcache_resp" type="array">
+      <obj_property name="ElementShortName">dcache_resp</obj_property>
+      <obj_property name="ObjectShortName">dcache_resp</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dcache_inst/stage1_data_mux" type="array">
+      <obj_property name="ElementShortName">stage1_data_mux[7:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">stage1_data_mux[7:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dcache_inst/stage1_data_ram" type="array">
+      <obj_property name="ElementShortName">stage1_data_ram[7:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">stage1_data_ram[7:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dcache_inst/pipe2_data_wrdata" type="array">
+      <obj_property name="ElementShortName">pipe2_data_wrdata[7:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">pipe2_data_wrdata[7:0][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dcache_inst/stage1_state" type="array">
+      <obj_property name="ElementShortName">stage1_state[2:0]</obj_property>
+      <obj_property name="ObjectShortName">stage1_state[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/soc_lite/u_cpu/trifling_mips_inst/trifling_mips_impl_inst/cache_controller_inst/dcache_inst/pipe0_sb_line" type="array">
+      <obj_property name="ElementShortName">pipe0_sb_line[255:0]</obj_property>
+      <obj_property name="ObjectShortName">pipe0_sb_line[255:0]</obj_property>
+   </wvobject>
+</wave_config>
