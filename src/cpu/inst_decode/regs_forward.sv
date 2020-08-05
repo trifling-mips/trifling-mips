@@ -26,11 +26,11 @@ always_comb begin
     // forward from exe & wb
     for (int i = 0; i < READ_PORTS; ++i) begin
         for (int j = 0; j < WRITE_PORTS; ++j) begin
-            if (pipe_wb.regs_wreq.we && pipe_wb.regs_wreq.waddr == regs_raddr_i[i])
+            if (pipe_wb.regs_wreq.we && pipe_wb.regs_wreq.waddr == regs_raddr_i[i] && |pipe_wb.regs_wreq.waddr)
                 regs_rddata_o[i] = pipe_wb.regs_wreq.wrdata;
-            if (pipe_mm.regs_wreq.we && pipe_mm.regs_wreq.waddr == regs_raddr_i[i])
+            if (pipe_mm.regs_wreq.we && pipe_mm.regs_wreq.waddr == regs_raddr_i[i] && |pipe_mm.regs_wreq.waddr)
                 regs_rddata_o[i] = pipe_mm.regs_wreq.wrdata;
-            if (pipe_ex.regs_wreq.we && pipe_ex.regs_wreq.waddr == regs_raddr_i[i])
+            if (pipe_ex.regs_wreq.we && pipe_ex.regs_wreq.waddr == regs_raddr_i[i] && |pipe_ex.regs_wreq.waddr)
                 regs_rddata_o[i] = pipe_ex.regs_wreq.wrdata;
         end
     end
@@ -38,9 +38,9 @@ always_comb begin
     // gen stall_o
     for (int i = 0; i < READ_PORTS; ++i) begin
         for (int j = 0; j < WRITE_PORTS; ++j) begin
-            if ((pipe_ex.dcache_req.read && pipe_ex.valid) && pipe_ex.regs_wreq.waddr == regs_raddr_i[i])  // && |pipe_ex.regs_wreq.waddr)
+            if ((pipe_ex.dcache_req.read && pipe_ex.valid) && pipe_ex.regs_wreq.waddr == regs_raddr_i[i] && |pipe_ex.regs_wreq.waddr)
                 stall_o = 1'b1;
-            if ((pipe_mm.dcache_req.read && pipe_mm.valid) && pipe_mm.regs_wreq.waddr == regs_raddr_i[i])  // && |pipe_mm.regs_wreq.waddr)
+            if ((pipe_mm.dcache_req.read && pipe_mm.valid) && pipe_mm.regs_wreq.waddr == regs_raddr_i[i] && |pipe_mm.regs_wreq.waddr)
                 stall_o = 1'b1;
         end
     end

@@ -40,7 +40,7 @@ assign tlb_refill = pipe_ex[0].exception.valid ? pipe_ex[0].exception.tlb_refill
 `else
 assign tlb_refill = 1'b0;
 `endif
-assign except_req.eret = pipe_ex[0].exception.eret;
+assign except_req.eret = pipe_ex[0].exception.eret & pipe_ex[0].valid;
 always_comb begin
     // when delayslot, int occur, set delayslot
     if (interrupt_occur) begin
